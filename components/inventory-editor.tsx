@@ -4,18 +4,12 @@ import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
-import { Download, Trash2, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import ItemSlot from "@/components/item-slot"
 import { InventoryGrid } from "@/components/inventory/grid"
 import { ItemSelectorModal } from "@/components/inventory/item-selector-modal"
 import { SlotDetectionSettings } from "@/components/inventory/slot-detection-settings"
 import { detectSlots, createImage } from "@/lib/slot-detection"
 import type { SlotPosition } from "@/types/inventory"
-
-// Base crafting grid image
-const CRAFTING_GRID_IMAGE = "/crafting-grid.png"
 
 // Base crafting grid image
 const DEFAULT_GUI_IMAGES = [
@@ -42,7 +36,6 @@ export default function InventoryEditor() {
   const gridFileInputRef = useRef<HTMLInputElement>(null)
   const [selectedGui, setSelectedGui] = useState(DEFAULT_GUI_IMAGES[0])
   const [gridImage, setGridImage] = useState<string>(selectedGui.path)
-  const [showGuiSelector, setShowGuiSelector] = useState(false)
   const [slotPositions, setSlotPositions] = useState<SlotPosition[]>([])
 
   // Add state for recent items
@@ -55,9 +48,6 @@ export default function InventoryEditor() {
   // Add a new state for showing the item selector
   const [showItemSelector, setShowItemSelector] = useState(false)
 
-  // Add state for showing upload dialog
-  const [showUploadDialog, setShowUploadDialog] = useState(false)
-
   // Add state for slot detection settings
   const [showSlotDetectionSettings, setShowSlotDetectionSettings] = useState(false)
   const [minSlotSize, setMinSlotSize] = useState(selectedGui.minSlotSize)
@@ -66,9 +56,6 @@ export default function InventoryEditor() {
 
   // Add state for image size
   const [imageSize, setImageSize] = useState({ width: 512, height: 264 })
-
-  // Add state for loading
-  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     // Initialize slots with default GUI settings
@@ -139,8 +126,6 @@ export default function InventoryEditor() {
       if (fileInputRef.current) {
         fileInputRef.current.value = ""
       }
-
-      setShowUploadDialog(false)
     }
   }
 
@@ -149,8 +134,8 @@ export default function InventoryEditor() {
       const file = e.target.files[0]
       const imageUrl = URL.createObjectURL(file)
       setTempGridImage(imageUrl)
-      
-      const size = await updateImageSize(imageUrl)
+
+      await updateImageSize(imageUrl)
       const slots = await detectSlots(imageUrl, minSlotSize)
       setPreviewSlots(slots)
       setShowSlotDetectionSettings(true)
@@ -271,17 +256,15 @@ export default function InventoryEditor() {
   const updateImageSize = async (imageUrl: string) => {
     const img = await createImage(imageUrl)
     setImageSize({ width: img.width, height: img.height })
-    return { width: img.width, height: img.height }
   }
 
   const handleSelectGui = async (gui: typeof DEFAULT_GUI_IMAGES[0]) => {
     setSelectedGui(gui)
     setGridImage(gui.path)
     setMinSlotSize(gui.minSlotSize)
-    const size = await updateImageSize(gui.path)
+    await updateImageSize(gui.path)
     const slots = await detectSlots(gui.path, gui.minSlotSize)
     setSlotPositions(slots)
-    setShowGuiSelector(false)
   }
 
   return (
@@ -401,7 +384,6 @@ export default function InventoryEditor() {
           }}
           onUpload={() => {
             setShowItemSelector(false)
-            setShowUploadDialog(true)
             setTimeout(() => {
               fileInputRef.current?.click()
             }, 100)

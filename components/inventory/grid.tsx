@@ -2,7 +2,8 @@ import Image from "next/image"
 import { ItemSlot } from "./item-slot"
 import type { SlotPosition } from "@/types/inventory"
 import { Button } from "@/components/ui/button"
-import { Trash2, Upload, Download } from "lucide-react"
+import { Trash2, Download } from "lucide-react"
+import React from "react";
 
 interface InventoryGridProps {
   gridImage: string

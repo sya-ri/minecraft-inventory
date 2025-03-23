@@ -6,7 +6,7 @@ export const createImage = (src: string): Promise<HTMLImageElement> => {
     const img = new window.Image()
     img.crossOrigin = "anonymous"
     img.onload = () => resolve(img)
-    img.onerror = (error: string | Event) => reject(new Error('Failed to load image'))
+    img.onerror = () => reject(new Error('Failed to load image'))
     img.src = src
   })
 }
@@ -75,7 +75,7 @@ export const detectSlots = async (
     if (!isTargetColor(startX, startY)) return null
 
     let size = minSlotSize
-    let maxSize = Math.min(canvas.width - startX, canvas.height - startY)
+    const maxSize = Math.min(canvas.width - startX, canvas.height - startY)
     let validSize = null
 
     while (size <= maxSize) {

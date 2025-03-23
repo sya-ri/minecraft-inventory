@@ -201,7 +201,7 @@ export default function ItemSelector({ onSelectItem, onClose, recentItems }: Ite
                     </button>
                   ))
                 ) : (
-                  <div className="col-span-4 text-center py-8 text-gray-400">No items found matching "{searchQuery}"</div>
+                  <div className="col-span-4 text-center py-8 text-gray-400">No items found matching {searchQuery}</div>
                 )}
               </div>
             </div>
