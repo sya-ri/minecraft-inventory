@@ -331,65 +331,104 @@ export default function InventoryEditor() {
           onClear={clearGrid}
           onDownload={downloadImage}
         />
-
-        {/* Hidden file inputs */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept="image/*"
-          onChange={handleItemUpload}
-        />
-        <input
-          type="file"
-          ref={gridFileInputRef}
-          className="hidden"
-          accept="image/*"
-          onChange={handleGridImageUpload}
-        />
-
-        {/* Item Selector Modal */}
-        {showItemSelector && (
-          <ItemSelectorModal
-            onSelectItem={handleSelectMinecraftItem}
-            onClose={() => {
-              setShowItemSelector(false)
-              setEditingSlot(null)
-            }}
-            onUpload={() => {
-              setShowItemSelector(false)
-              setShowUploadDialog(true)
-              setTimeout(() => {
-                fileInputRef.current?.click()
-              }, 100)
-            }}
-            recentItems={recentItems}
-          />
-        )}
-
-        {/* Slot Detection Settings Modal */}
-        {showSlotDetectionSettings && tempGridImage && (
-          <SlotDetectionSettings
-            tempGridImage={tempGridImage}
-            imageSize={imageSize}
-            previewSlots={previewSlots}
-            minSlotSize={minSlotSize}
-            onMinSlotSizeChange={async (value) => {
-              setMinSlotSize(value)
-              if (tempGridImage) {
-                const slots = await detectSlots(tempGridImage, value)
-                setPreviewSlots(slots)
-              }
-            }}
-            onCancel={() => {
-              setShowSlotDetectionSettings(false)
-              setTempGridImage(null)
-              setPreviewSlots([])
-            }}
-            onApply={handleApplySlotDetection}
-          />
-        )}
       </div>
+
+      {/* Recent Items Sidebar */}
+      {recentItems.length > 0 && (
+        <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)] overflow-y-auto">
+          <h2 className="text-lg font-bold mb-4">Recent Items</h2>
+          <div className="grid grid-cols-3 gap-2">
+            {recentItems.map((item) => (
+              <div
+                key={item.url}
+                className="group relative aspect-square"
+                draggable
+                onDragStart={(e) => {
+                  const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                  setItems(prevItems => [...prevItems, {
+                    id,
+                    image: item.url,
+                    position: null
+                  }])
+                  handleDragStart(id)
+                }}
+              >
+                <div className="w-full h-full p-1 rounded hover:bg-gray-800 transition-colors">
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={item.url}
+                      alt={item.name}
+                      fill
+                      className="object-contain pixelated"
+                    />
+                  </div>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p className="text-xs text-white text-center px-1">{item.name}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Hidden file inputs */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleItemUpload}
+      />
+      <input
+        type="file"
+        ref={gridFileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleGridImageUpload}
+      />
+
+      {/* Item Selector Modal */}
+      {showItemSelector && (
+        <ItemSelectorModal
+          onSelectItem={handleSelectMinecraftItem}
+          onClose={() => {
+            setShowItemSelector(false)
+            setEditingSlot(null)
+          }}
+          onUpload={() => {
+            setShowItemSelector(false)
+            setShowUploadDialog(true)
+            setTimeout(() => {
+              fileInputRef.current?.click()
+            }, 100)
+          }}
+          recentItems={recentItems}
+        />
+      )}
+
+      {/* Slot Detection Settings Modal */}
+      {showSlotDetectionSettings && tempGridImage && (
+        <SlotDetectionSettings
+          tempGridImage={tempGridImage}
+          imageSize={imageSize}
+          previewSlots={previewSlots}
+          minSlotSize={minSlotSize}
+          onMinSlotSizeChange={async (value) => {
+            setMinSlotSize(value)
+            if (tempGridImage) {
+              const slots = await detectSlots(tempGridImage, value)
+              setPreviewSlots(slots)
+            }
+          }}
+          onCancel={() => {
+            setShowSlotDetectionSettings(false)
+            setTempGridImage(null)
+            setPreviewSlots([])
+          }}
+          onApply={handleApplySlotDetection}
+        />
+      )}
     </div>
   )
 }
