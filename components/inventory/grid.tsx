@@ -6,14 +6,21 @@ import { Trash2, Upload, Download } from "lucide-react"
 
 interface InventoryGridProps {
   gridImage: string
-  imageSize: { width: number; height: number }
+  imageSize: {
+    width: number
+    height: number
+  }
   slotPositions: SlotPosition[]
-  items: Array<{ id: string; image: string; position: number | null }>
-  onDrop: (position: number) => void
-  onDragOver: (e: React.DragEvent) => void
-  onSlotClick: (position: number) => void
+  items: Array<{
+    id: string
+    image: string
+    position: number | null
+  }>
   onDragStart: (id: string) => void
+  onDrop: (position: number) => void
+  onSlotClick: (position: number) => void
   onRemoveItem: (position: number) => void
+  onDragOver: (e: React.DragEvent) => void
   onClear: () => void
   onDownload: () => void
 }
@@ -23,17 +30,17 @@ export function InventoryGrid({
   imageSize,
   slotPositions,
   items,
-  onDrop,
-  onDragOver,
-  onSlotClick,
   onDragStart,
+  onDrop,
+  onSlotClick,
   onRemoveItem,
+  onDragOver,
   onClear,
   onDownload,
 }: InventoryGridProps) {
   return (
     <div className="relative">
-      <div className="relative mx-auto" style={{ maxWidth: '100%', width: 'fit-content' }}>
+      <div className="relative mx-auto" style={{ width: 'fit-content' }}>
         <Image
           src={gridImage || "/placeholder.svg"}
           alt="Minecraft Crafting Grid"
@@ -81,10 +88,10 @@ export function InventoryGrid({
         </Button>
       </div>
 
-      <div className="text-gray-400 text-center mt-4 text-sm">
+      <div className="text-gray-300 text-center mt-4 text-sm space-y-1">
         <p>Click on any slot to add or change an item</p>
-        <p className="mt-1">Drag items between slots to move them</p>
-        <p className="mt-1">Right-click to remove an item</p>
+        <p>Drag items between slots to move them</p>
+        <p>Right-click to remove an item</p>
       </div>
     </div>
   )

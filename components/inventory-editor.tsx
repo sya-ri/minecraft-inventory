@@ -65,7 +65,7 @@ export default function InventoryEditor() {
   const [previewSlots, setPreviewSlots] = useState<SlotPosition[]>([])
 
   // Add state for image size
-  const [imageSize, setImageSize] = useState({ width: 400, height: 200 })
+  const [imageSize, setImageSize] = useState({ width: 512, height: 264 })
 
   // Add state for loading
   const [isLoading, setIsLoading] = useState(false)
@@ -321,61 +321,55 @@ export default function InventoryEditor() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="bg-gray-900 rounded-lg p-6 flex-1">
-        <InventoryGrid
-          gridImage={gridImage}
-          imageSize={imageSize}
-          slotPositions={slotPositions}
-          items={items}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onSlotClick={handleSlotClick}
-          onDragStart={handleDragStart}
-          onRemoveItem={handleRemoveItem}
-          onClear={clearGrid}
-          onDownload={downloadImage}
-        />
+      {/* Main Editor Area */}
+      <div className="bg-gray-900 rounded-lg p-4 w-[600px] flex flex-col items-center">
+        <div className="relative w-full flex justify-center">
+          <div className="relative">
+            <InventoryGrid
+              gridImage={gridImage}
+              imageSize={imageSize}
+              slotPositions={slotPositions}
+              items={items}
+              onDragStart={handleDragStart}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onSlotClick={handleSlotClick}
+              onRemoveItem={handleRemoveItem}
+              onClear={clearGrid}
+              onDownload={downloadImage}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Recent Items Sidebar */}
-      {recentItems.length > 0 && (
-        <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)] overflow-y-auto">
-          <h2 className="text-lg font-bold mb-4">Recent Items</h2>
-          <div className="grid grid-cols-3 gap-2">
-            {recentItems.map((item) => (
-              <div
-                key={item.url}
-                className="group relative aspect-square"
-                draggable
-                onDragStart={(e) => {
-                  const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-                  setItems(prevItems => [...prevItems, {
-                    id,
-                    image: item.url,
-                    position: null
-                  }])
-                  handleDragStart(id)
-                }}
-              >
-                <div className="w-full h-full p-1 rounded hover:bg-gray-800 transition-colors">
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={item.url}
-                      alt={item.name}
-                      fill
-                      className="object-contain pixelated"
-                    />
-                  </div>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-xs text-white text-center px-1">{item.name}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)]">
+        <h2 className="text-lg font-bold mb-4">Recent Items</h2>
+        <div className="grid grid-cols-3 gap-2">
+          {recentItems.map((item, index) => (
+            <button
+              key={`${item.path}-${index}`}
+              className="relative aspect-square bg-gray-800 rounded-lg p-2 hover:bg-gray-700 transition-colors"
+              onClick={() => {
+                const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                setItems(prevItems => [...prevItems, {
+                  id,
+                  image: item.url || item.path,
+                  position: null
+                }])
+                handleDragStart(id)
+              }}
+            >
+              <Image
+                src={item.url || item.path}
+                alt={item.name}
+                fill
+                className="object-contain p-1"
+              />
+            </button>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Hidden file inputs */}
       <input
