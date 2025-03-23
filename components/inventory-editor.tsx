@@ -40,7 +40,6 @@ export default function InventoryEditor() {
 
   // Add state for recent items
   const [recentItems, setRecentItems] = useState<Array<{ name: string; path: string; url: string; isCustom?: boolean }>>([])
-  const MAX_RECENT_ITEMS = 8
 
   // Add state to track which slot is being edited
   const [editingSlot, setEditingSlot] = useState<number | null>(null)
@@ -84,8 +83,13 @@ export default function InventoryEditor() {
       })
 
       setRecentItems(prevItems => {
-        const newRecentItems = prevItems.filter(recentItem => recentItem.url !== item.url)
-        return [item, ...newRecentItems].slice(0, MAX_RECENT_ITEMS)
+        const existingIndex = prevItems.findIndex(i => i.url === item.url)
+        if (existingIndex !== -1) {
+          const newItems = [...prevItems]
+          newItems.splice(existingIndex, 1)
+          return [item, ...newItems]
+        }
+        return [item, ...prevItems]
       })
     }
 
@@ -116,8 +120,13 @@ export default function InventoryEditor() {
           isCustom: true
         }
         setRecentItems(prevItems => {
-          const newRecentItems = prevItems.filter(item => item.url !== imageUrl)
-          return [customItem, ...newRecentItems].slice(0, MAX_RECENT_ITEMS)
+          const existingIndex = prevItems.findIndex(i => i.url === imageUrl)
+          if (existingIndex !== -1) {
+            const newItems = [...prevItems]
+            newItems.splice(existingIndex, 1)
+            return [customItem, ...newItems]
+          }
+          return [customItem, ...prevItems]
         })
 
         setEditingSlot(null)
