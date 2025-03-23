@@ -47,12 +47,10 @@ export function InventoryGrid({
           {slotPositions.map((slot, index) => (
             <div
               key={index}
-              className="absolute"
               style={{
-                left: `${(slot.x / imageSize.width) * 100}%`,
-                top: `${(slot.y / imageSize.height) * 100}%`,
-                width: `${(slot.width / imageSize.width) * 100}%`,
-                height: `${(slot.height / imageSize.height) * 100}%`,
+                position: 'absolute',
+                left: `${slot.x}px`,
+                top: `${slot.y}px`,
               }}
             >
               <ItemSlot
@@ -62,6 +60,8 @@ export function InventoryGrid({
                 onDragOver={onDragOver}
                 onClick={onSlotClick}
                 onDragStart={onDragStart}
+                width={slot.width}
+                height={slot.height}
               />
             </div>
           ))}

@@ -190,16 +190,37 @@ export const detectSlots = async (
   // スロットを行ごとにグループ化
   const rows = groupSlotsByRow(candidates)
 
-  // 各行内のスロットの間隔を均一化
+  // 各行のスロットの位置を微調整（大きな移動は避ける）
   const normalizedSlots = rows.flatMap(row => {
     if (row.length <= 1) return row
 
-    return row.map(slot => ({
-      x: slot.x,
-      y: slot.y,
-      width: avgSize,
-      height: avgSize
-    }))
+    // 各スロットの位置を維持しながら、明らかなズレのみを修正
+    return row.map((slot, index) => {
+      // 隣接するスロットとの距離をチェック
+      const prevSlot = index > 0 ? row[index - 1] : null
+      const nextSlot = index < row.length - 1 ? row[index + 1] : null
+
+      let adjustedX = slot.x
+      
+      // 前のスロットとの間隔が不自然に小さい場合は調整
+      if (prevSlot && (slot.x - (prevSlot.x + prevSlot.width)) < 2) {
+        adjustedX = prevSlot.x + prevSlot.width + 2
+      }
+      
+      // 次のスロットとの間隔が不自然に小さい場合は調整
+      if (nextSlot && (nextSlot.x - (slot.x + slot.width)) < 2) {
+        if (!prevSlot) { // 最初のスロットの場合のみ位置を調整
+          adjustedX = nextSlot.x - slot.width - 2
+        }
+      }
+
+      return {
+        x: adjustedX,
+        y: slot.y,
+        width: slot.width,
+        height: slot.height
+      }
+    })
   })
 
   // 最終的なソート（上から下、左から右）

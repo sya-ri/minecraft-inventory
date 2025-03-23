@@ -7,6 +7,8 @@ interface ItemSlotProps {
   onDragOver: (e: React.DragEvent) => void
   onClick: (position: number) => void
   onDragStart: (id: string) => void
+  width: number
+  height: number
 }
 
 export function ItemSlot({
@@ -16,10 +18,20 @@ export function ItemSlot({
   onDragOver,
   onClick,
   onDragStart,
+  width,
+  height,
 }: ItemSlotProps) {
+  // アイテムのサイズをスロットの80%に設定
+  const itemSize = Math.floor(Math.min(width, height) * 0.8)
+  const padding = Math.floor((Math.min(width, height) - itemSize) / 2)
+
   return (
     <div
-      className="w-full h-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded cursor-pointer hover:bg-opacity-70 transition-colors"
+      className="absolute bg-gray-800 bg-opacity-50 border border-gray-700 rounded cursor-pointer hover:bg-opacity-70 transition-colors"
+      style={{
+        width: `${width}px`,
+        height: `${height}px`,
+      }}
       onClick={() => onClick(position)}
       onDrop={(e) => {
         e.preventDefault()
@@ -29,15 +41,22 @@ export function ItemSlot({
     >
       {item && (
         <div
-          className="w-full h-full relative"
+          className="absolute"
+          style={{
+            top: `${padding}px`,
+            left: `${padding}px`,
+            width: `${itemSize}px`,
+            height: `${itemSize}px`,
+          }}
           draggable
           onDragStart={() => onDragStart(item.id)}
         >
           <Image
             src={item.image}
             alt="Item"
-            fill
-            className="object-contain p-1 pixelated"
+            width={itemSize}
+            height={itemSize}
+            className="pixelated"
             draggable={false}
           />
         </div>
