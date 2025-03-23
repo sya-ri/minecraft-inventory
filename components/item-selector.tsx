@@ -12,14 +12,19 @@ interface MinecraftItem {
   name: string
   path: string
   url: string
+  isCustom?: boolean
 }
 
 interface ItemSelectorProps {
   onSelectItem: (item: MinecraftItem) => void
   onClose: () => void
+  recentItems: MinecraftItem[]
 }
 
-export default function ItemSelector({ onSelectItem, onClose }: ItemSelectorProps) {
+// Cache for Minecraft items
+let cachedItems: MinecraftItem[] | null = null
+
+export default function ItemSelector({ onSelectItem, onClose, recentItems }: ItemSelectorProps) {
   const [items, setItems] = useState<MinecraftItem[]>([])
   const [filteredItems, setFilteredItems] = useState<MinecraftItem[]>([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -32,8 +37,14 @@ export default function ItemSelector({ onSelectItem, onClose }: ItemSelectorProp
         setLoading(true)
         setError(null)
 
-        // Use a proxy API route to fetch the _list.json file
-        // This avoids CORS issues
+        // Use cached items if available
+        if (cachedItems) {
+          setItems(cachedItems)
+          setFilteredItems(cachedItems)
+          setLoading(false)
+          return
+        }
+
         const response = await fetch("/api/minecraft-items")
 
         if (!response.ok) {
@@ -50,16 +61,16 @@ export default function ItemSelector({ onSelectItem, onClose }: ItemSelectorProp
           "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/item/"
 
         const fetchedItems = data.items.map((itemPath: string) => {
-          // Remove the file extension to get the item name
           const itemName = itemPath.replace(".png", "")
-
           return {
-            name: itemName.replace(/_/g, " "), // Replace underscores with spaces for display
+            name: itemName.replace(/_/g, " "),
             path: itemPath,
             url: `${baseUrl}${itemPath}`,
           }
         })
 
+        // Cache the fetched items
+        cachedItems = fetchedItems
         setItems(fetchedItems)
         setFilteredItems(fetchedItems)
         setLoading(false)
@@ -119,21 +130,15 @@ export default function ItemSelector({ onSelectItem, onClose }: ItemSelectorProp
 
       <ScrollArea className="flex-1 h-[400px] overflow-y-auto">
         <div className="p-4">
-          {loading ? (
-            <div className="grid grid-cols-4 gap-2">
-              {[...Array(16)].map((_, i) => (
-                <Skeleton key={i} className="w-16 h-16 bg-gray-800" />
-              ))}
-            </div>
-          ) : error ? (
-            <div className="text-center py-8 text-red-400">{error}</div>
-          ) : (
-            <div className="grid grid-cols-4 gap-2">
-              {filteredItems.length > 0 ? (
-                filteredItems.map((item) => (
+          {/* Recent Items Section */}
+          {recentItems.length > 0 && !searchQuery && (
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-400 mb-2">Recent Items</h3>
+              <div className="grid grid-cols-4 gap-2">
+                {recentItems.map((item) => (
                   <button
-                    key={item.path}
-                    className="w-16 h-16 bg-gray-800 rounded border border-gray-700 hover:border-primary transition-colors p-1 flex items-center justify-center"
+                    key={item.url}
+                    className="w-16 h-16 bg-gray-800 rounded border border-gray-700 hover:border-primary transition-colors p-1 flex items-center justify-center relative"
                     onClick={() => onSelectItem(item)}
                     title={item.name}
                   >
@@ -145,16 +150,60 @@ export default function ItemSelector({ onSelectItem, onClose }: ItemSelectorProp
                         height={48}
                         className="pixelated object-contain"
                         onError={(e) => {
-                          // Fallback for images that fail to load
                           e.currentTarget.src = "/placeholder.svg"
                         }}
                       />
                     </div>
+                    {item.isCustom && (
+                      <div className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full" />
+                    )}
                   </button>
-                ))
-              ) : (
-                <div className="col-span-4 text-center py-8 text-gray-400">No items found matching "{searchQuery}"</div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* All Items Section */}
+          {loading ? (
+            <div className="grid grid-cols-4 gap-2">
+              {[...Array(16)].map((_, i) => (
+                <Skeleton key={i} className="w-16 h-16 bg-gray-800" />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-400">{error}</div>
+          ) : (
+            <div>
+              {!searchQuery && recentItems.length > 0 && (
+                <h3 className="text-sm font-medium text-gray-400 mb-2">All Items</h3>
               )}
+              <div className="grid grid-cols-4 gap-2">
+                {filteredItems.length > 0 ? (
+                  filteredItems.map((item) => (
+                    <button
+                      key={item.path}
+                      className="w-16 h-16 bg-gray-800 rounded border border-gray-700 hover:border-primary transition-colors p-1 flex items-center justify-center"
+                      onClick={() => onSelectItem(item)}
+                      title={item.name}
+                    >
+                      <div className="relative w-12 h-12">
+                        <Image
+                          src={item.url || "/placeholder.svg"}
+                          alt={item.name}
+                          width={48}
+                          height={48}
+                          className="pixelated object-contain"
+                          onError={(e) => {
+                            e.currentTarget.src = "/placeholder.svg"
+                          }}
+                        />
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="col-span-4 text-center py-8 text-gray-400">No items found matching "{searchQuery}"</div>
+                )}
+              </div>
             </div>
           )}
         </div>
