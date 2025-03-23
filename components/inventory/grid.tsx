@@ -13,6 +13,7 @@ interface InventoryGridProps {
   onDragOver: (e: React.DragEvent) => void
   onSlotClick: (position: number) => void
   onDragStart: (id: string) => void
+  onRemoveItem: (position: number) => void
   onClear: () => void
   onDownload: () => void
 }
@@ -26,6 +27,7 @@ export function InventoryGrid({
   onDragOver,
   onSlotClick,
   onDragStart,
+  onRemoveItem,
   onClear,
   onDownload,
 }: InventoryGridProps) {
@@ -58,6 +60,7 @@ export function InventoryGrid({
                 onDragOver={onDragOver}
                 onClick={onSlotClick}
                 onDragStart={onDragStart}
+                onRemoveItem={onRemoveItem}
                 width={slot.width}
                 height={slot.height}
               />
@@ -81,6 +84,7 @@ export function InventoryGrid({
       <div className="text-gray-400 text-center mt-4 text-sm">
         <p>Click on any slot to add or change an item</p>
         <p className="mt-1">Drag items between slots to move them</p>
+        <p className="mt-1">Right-click to remove an item</p>
       </div>
     </div>
   )

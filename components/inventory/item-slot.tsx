@@ -2,11 +2,12 @@ import Image from "next/image"
 
 interface ItemSlotProps {
   position: number
-  item?: { id: string; image: string; position: number | null }
+  item?: { id: string; image: string } | null
   onDrop: (position: number) => void
   onDragOver: (e: React.DragEvent) => void
   onClick: (position: number) => void
   onDragStart: (id: string) => void
+  onRemoveItem?: (position: number) => void
   width: number
   height: number
 }
@@ -18,48 +19,43 @@ export function ItemSlot({
   onDragOver,
   onClick,
   onDragStart,
+  onRemoveItem,
   width,
   height,
 }: ItemSlotProps) {
-  // アイテムのサイズをスロットの80%に設定
-  const itemSize = Math.floor(Math.min(width, height) * 0.8)
-  const padding = Math.floor((Math.min(width, height) - itemSize) / 2)
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (item && onRemoveItem) {
+      onRemoveItem(position)
+    }
+  }
 
   return (
     <div
-      className="absolute bg-gray-800 bg-opacity-50 border border-gray-700 rounded cursor-pointer hover:bg-opacity-70 transition-colors"
-      style={{
-        width: `${width}px`,
-        height: `${height}px`,
-      }}
-      onClick={() => onClick(position)}
-      onDrop={(e) => {
-        e.preventDefault()
-        onDrop(position)
-      }}
+      className="relative"
+      style={{ width: `${width}px`, height: `${height}px` }}
+      onDrop={() => onDrop(position)}
       onDragOver={onDragOver}
+      onClick={() => onClick(position)}
+      onContextMenu={handleContextMenu}
     >
-      {item && (
+      {item ? (
         <div
-          className="absolute"
-          style={{
-            top: `${padding}px`,
-            left: `${padding}px`,
-            width: `${itemSize}px`,
-            height: `${itemSize}px`,
-          }}
+          className="w-full h-full"
           draggable
           onDragStart={() => onDragStart(item.id)}
         >
-          <Image
-            src={item.image}
-            alt="Item"
-            width={itemSize}
-            height={itemSize}
-            className="pixelated"
-            draggable={false}
-          />
+          <div className="relative w-full h-full p-[20%]">
+            <Image
+              src={item.image}
+              alt="Item"
+              fill
+              className="object-contain pixelated"
+            />
+          </div>
         </div>
+      ) : (
+        <div className="w-full h-full bg-black bg-opacity-20" />
       )}
     </div>
   )

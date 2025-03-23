@@ -181,6 +181,10 @@ export default function InventoryEditor() {
     setDraggedItem(id)
   }
 
+  const handleRemoveItem = (position: number) => {
+    setItems(prevItems => prevItems.filter(item => item.position !== position))
+  }
+
   const handleDrop = (position: number) => {
     if (draggedItem) {
       const draggedItemObj = items.find((item) => item.id === draggedItem)
@@ -328,6 +332,7 @@ export default function InventoryEditor() {
           onDragOver={handleDragOver}
           onSlotClick={handleSlotClick}
           onDragStart={handleDragStart}
+          onRemoveItem={handleRemoveItem}
           onClear={clearGrid}
           onDownload={downloadImage}
         />
