@@ -351,21 +351,24 @@ export default function InventoryEditor() {
             <button
               key={`${item.path}-${index}`}
               className="relative aspect-square bg-gray-800 rounded-lg p-2 hover:bg-gray-700 transition-colors"
-              onClick={() => {
-                const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-                setItems(prevItems => [...prevItems, {
-                  id,
-                  image: item.url || item.path,
-                  position: null
-                }])
-                handleDragStart(id)
-              }}
             >
               <Image
                 src={item.url || item.path}
                 alt={item.name}
                 fill
-                className="object-contain p-1"
+                className="object-contain p-1 !duration-0"
+                style={{ imageRendering: 'pixelated' }}
+                onDragStart={(e) => {
+                  const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                  setItems(prevItems => [...prevItems, {
+                    id,
+                    image: item.url || item.path,
+                    position: null
+                  }])
+                  handleDragStart(id)
+                  e.dataTransfer.effectAllowed = 'move'
+                }}
+                sizes="64px"
               />
             </button>
           ))}

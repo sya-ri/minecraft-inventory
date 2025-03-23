@@ -34,8 +34,15 @@ export function ItemSlot({
     <div
       className="relative"
       style={{ width: `${width}px`, height: `${height}px` }}
-      onDrop={() => onDrop(position)}
-      onDragOver={onDragOver}
+      onDrop={(e) => {
+        e.preventDefault()
+        onDrop(position)
+      }}
+      onDragOver={(e) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'
+        onDragOver(e)
+      }}
       onClick={() => onClick(position)}
       onContextMenu={handleContextMenu}
     >
@@ -43,7 +50,10 @@ export function ItemSlot({
         <div
           className="w-full h-full"
           draggable
-          onDragStart={() => onDragStart(item.id)}
+          onDragStart={(e) => {
+            onDragStart(item.id)
+            e.dataTransfer.effectAllowed = 'move'
+          }}
         >
           <div className="relative w-full h-full p-[20%]">
             <Image
