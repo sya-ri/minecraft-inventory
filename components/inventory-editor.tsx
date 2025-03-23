@@ -284,7 +284,16 @@ export default function InventoryEditor() {
     <div className="flex gap-4">
       {/* GUI List Sidebar */}
       <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)] overflow-y-auto">
-        <h2 className="text-lg font-bold mb-4">Select GUI</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold">Select GUI</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => gridFileInputRef.current?.click()}
+          >
+            Upload
+          </Button>
+        </div>
         <div className="space-y-2">
           {DEFAULT_GUI_IMAGES.map((gui) => (
             <button
@@ -320,7 +329,6 @@ export default function InventoryEditor() {
           onSlotClick={handleSlotClick}
           onDragStart={handleDragStart}
           onClear={clearGrid}
-          onChangeGrid={() => gridFileInputRef.current?.click()}
           onDownload={downloadImage}
         />
 

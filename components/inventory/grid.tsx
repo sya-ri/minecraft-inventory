@@ -14,7 +14,6 @@ interface InventoryGridProps {
   onSlotClick: (position: number) => void
   onDragStart: (id: string) => void
   onClear: () => void
-  onChangeGrid: () => void
   onDownload: () => void
 }
 
@@ -28,7 +27,6 @@ export function InventoryGrid({
   onSlotClick,
   onDragStart,
   onClear,
-  onChangeGrid,
   onDownload,
 }: InventoryGridProps) {
   return (
@@ -69,17 +67,10 @@ export function InventoryGrid({
       </div>
 
       <div className="flex justify-between mt-4">
-        <div className="flex gap-2">
-          <Button variant="destructive" size="sm" onClick={onClear}>
-            <Trash2 className="w-4 h-4 mr-2" />
-            Clear Grid
-          </Button>
-
-          <Button variant="outline" size="sm" onClick={onChangeGrid}>
-            <Upload className="w-4 h-4 mr-2" />
-            Change Grid
-          </Button>
-        </div>
+        <Button variant="destructive" size="sm" onClick={onClear}>
+          <Trash2 className="w-4 h-4 mr-2" />
+          Clear Grid
+        </Button>
 
         <Button variant="secondary" size="sm" onClick={onDownload}>
           <Download className="w-4 h-4 mr-2" />
