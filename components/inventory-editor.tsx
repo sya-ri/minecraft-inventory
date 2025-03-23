@@ -13,20 +13,20 @@ import type { SlotPosition } from "@/types/inventory"
 
 // Base crafting grid image
 const DEFAULT_GUI_IMAGES = [
-  { name: "Crafting Table", path: "/gui/crafting_table.png", minSlotSize: 20 },
-  { name: "Furnace", path: "/gui/furnace.png", minSlotSize: 20 },
-  { name: "Brewing Stand", path: "/gui/brewing_stand.png", minSlotSize: 20 },
-  { name: "Grindstone", path: "/gui/grindstone.png", minSlotSize: 20 },
-  { name: "Chest (1x9)", path: "/gui/generic_1x9.png", minSlotSize: 20 },
-  { name: "Chest (2x9)", path: "/gui/generic_2x9.png", minSlotSize: 20 },
-  { name: "Chest (3x9)", path: "/gui/generic_3x9.png", minSlotSize: 20 },
-  { name: "Chest (4x9)", path: "/gui/generic_4x9.png", minSlotSize: 20 },
-  { name: "Chest (5x9)", path: "/gui/generic_5x9.png", minSlotSize: 20 },
-  { name: "Chest (6x9)", path: "/gui/generic_6x9.png", minSlotSize: 20 },
-  { name: "Chest (7x9)", path: "/gui/generic_7x9.png", minSlotSize: 20 },
-  { name: "Chest (8x9)", path: "/gui/generic_8x9.png", minSlotSize: 20 },
-  { name: "Chest (9x9)", path: "/gui/generic_9x9.png", minSlotSize: 20 },
-  { name: "Inventory (3x3)", path: "/gui/generic_3x3.png", minSlotSize: 20 },
+  { name: "Crafting Table", path: "/gui/crafting_table.png", minSlotSize: 30 },
+  { name: "Furnace", path: "/gui/furnace.png", minSlotSize: 30 },
+  { name: "Brewing Stand", path: "/gui/brewing_stand.png", minSlotSize: 30 },
+  { name: "Grindstone", path: "/gui/grindstone.png", minSlotSize: 30 },
+  { name: "Chest (1x9)", path: "/gui/generic_1x9.png", minSlotSize: 30 },
+  { name: "Chest (2x9)", path: "/gui/generic_2x9.png", minSlotSize: 30 },
+  { name: "Chest (3x9)", path: "/gui/generic_3x9.png", minSlotSize: 30 },
+  { name: "Chest (4x9)", path: "/gui/generic_4x9.png", minSlotSize: 30 },
+  { name: "Chest (5x9)", path: "/gui/generic_5x9.png", minSlotSize: 30 },
+  { name: "Chest (6x9)", path: "/gui/generic_6x9.png", minSlotSize: 30 },
+  { name: "Chest (7x9)", path: "/gui/generic_7x9.png", minSlotSize: 30 },
+  { name: "Chest (8x9)", path: "/gui/generic_8x9.png", minSlotSize: 30 },
+  { name: "Chest (9x9)", path: "/gui/generic_9x9.png", minSlotSize: 30 },
+  { name: "Inventory (3x3)", path: "/gui/generic_3x3.png", minSlotSize: 30 },
 ]
 
 export default function InventoryEditor() {
