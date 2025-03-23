@@ -188,6 +188,9 @@ export default function InventoryEditor() {
       canvas.width = imageSize.width
       canvas.height = imageSize.height
 
+      // ピクセルアートをクリアに保つ
+      ctx.imageSmoothingEnabled = false
+
       try {
         const baseImage = await createImage(gridImage)
         ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height)
@@ -196,7 +199,18 @@ export default function InventoryEditor() {
           if (item.position !== null && slotPositions[item.position]) {
             const itemImage = await createImage(item.image)
             const slot = slotPositions[item.position]
-            ctx.drawImage(itemImage, slot.x, slot.y, slot.width, slot.height)
+            
+            // アイテムのサイズをスロットの80%に設定
+            const itemSize = Math.floor(Math.min(slot.width, slot.height) * 0.8)
+            const padding = Math.floor((Math.min(slot.width, slot.height) - itemSize) / 2)
+            
+            ctx.drawImage(
+              itemImage,
+              slot.x + padding,
+              slot.y + padding,
+              itemSize,
+              itemSize
+            )
           }
         }
       } catch (error) {
@@ -213,7 +227,7 @@ export default function InventoryEditor() {
           a.click()
           URL.revokeObjectURL(url)
         }
-      })
+      }, 'image/png')
     } catch (error) {
       console.error("Error generating image:", error)
     }
