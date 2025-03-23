@@ -333,6 +333,16 @@ export default function InventoryEditor() {
             />
           </div>
         </div>
+        <div className="mt-4 text-center text-gray-400 text-sm">
+          <a
+              href="https://github.com/sya-ri/minecraft-inventory"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-300 transition-colors"
+          >
+            © 2025 sya-ri
+          </a>
+        </div>
       </div>
 
       {/* Recent Items Sidebar */}
