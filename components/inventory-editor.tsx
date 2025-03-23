@@ -288,7 +288,7 @@ export default function InventoryEditor() {
     <div className="flex gap-4">
       {/* GUI List Sidebar */}
       <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)] flex flex-col">
-        <div className="flex justify-between items-center mb-4 sticky top-0 bg-gray-900 z-10">
+        <div className="flex justify-between items-center mb-4 sticky top-4 bg-gray-900 z-10">
           <h2 className="text-lg font-bold">Select GUI</h2>
           <Button
             variant="outline"
@@ -315,7 +315,7 @@ export default function InventoryEditor() {
                   className="object-contain"
                 />
               </div>
-              <p className="text-sm text-center">{gui.name}</p>
+              <p className="text-sm text-center text-gray-200">{gui.name}</p>
             </button>
           ))}
         </div>
