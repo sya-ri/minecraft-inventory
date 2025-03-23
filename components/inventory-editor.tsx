@@ -289,7 +289,7 @@ export default function InventoryEditor() {
       {/* GUI List Sidebar */}
       <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)] flex flex-col">
         <div className="flex justify-between items-center mb-4 sticky top-4 bg-gray-900 z-10">
-          <h2 className="text-lg font-bold">Select GUI</h2>
+          <h2 className="text-lg font-bold text-gray-200">Select GUI</h2>
           <Button
             variant="outline"
             size="sm"
@@ -323,6 +323,7 @@ export default function InventoryEditor() {
 
       {/* Main Editor Area */}
       <div className="bg-gray-900 rounded-lg p-4 w-[600px] flex flex-col items-center">
+        <h1 className="text-2xl font-bold text-gray-200 mb-4">Minecraft Inventory Editor</h1>
         <div className="relative w-full flex justify-center">
           <div className="relative">
             <InventoryGrid
@@ -344,7 +345,7 @@ export default function InventoryEditor() {
 
       {/* Recent Items Sidebar */}
       <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)]">
-        <h2 className="text-lg font-bold mb-4">Recent Items</h2>
+        <h2 className="text-lg font-bold mb-4 text-gray-200">Recent Items</h2>
         <div className="grid grid-cols-3 gap-2">
           {recentItems.map((item, index) => (
             <button
