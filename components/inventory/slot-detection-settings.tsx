@@ -6,9 +6,7 @@ interface SlotDetectionSettingsProps {
   tempGridImage: string
   imageSize: { width: number; height: number }
   previewSlots: SlotPosition[]
-  threshold: number
   minSlotSize: number
-  onThresholdChange: (value: number) => void
   onMinSlotSizeChange: (value: number) => void
   onCancel: () => void
   onApply: () => void
@@ -18,9 +16,7 @@ export function SlotDetectionSettings({
   tempGridImage,
   imageSize,
   previewSlots,
-  threshold,
   minSlotSize,
-  onThresholdChange,
   onMinSlotSizeChange,
   onCancel,
   onApply,
@@ -60,23 +56,11 @@ export function SlotDetectionSettings({
 
           <div className="space-y-4">
             <div>
-              <label className="text-sm text-gray-400">Color Tolerance ({threshold})</label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={threshold}
-                onChange={(e) => onThresholdChange(parseInt(e.target.value))}
-                className="w-full"
-              />
-            </div>
-
-            <div>
               <label className="text-sm text-gray-400">Minimum Slot Size ({minSlotSize}px)</label>
               <input
                 type="range"
                 min="10"
-                max="50"
+                max={Math.min(imageSize.width, imageSize.height)}
                 value={minSlotSize}
                 onChange={(e) => onMinSlotSizeChange(parseInt(e.target.value))}
                 className="w-full"

@@ -19,20 +19,20 @@ const CRAFTING_GRID_IMAGE = "/crafting-grid.png"
 
 // Base crafting grid image
 const DEFAULT_GUI_IMAGES = [
-  { name: "Crafting Table", path: "/gui/crafting_table.png", threshold: 100, minSlotSize: 20 },
-  { name: "Furnace", path: "/gui/furnace.png", threshold: 100, minSlotSize: 22 },
-  { name: "Brewing Stand", path: "/gui/brewing_stand.png", threshold: 100, minSlotSize: 20 },
-  { name: "Grindstone", path: "/gui/grindstone.png", threshold: 100, minSlotSize: 25 },
-  { name: "Chest (1x9)", path: "/gui/generic_1x9.png", threshold: 100, minSlotSize: 20 },
-  { name: "Chest (2x9)", path: "/gui/generic_2x9.png", threshold: 100, minSlotSize: 20 },
-  { name: "Chest (3x9)", path: "/gui/generic_3x9.png", threshold: 100, minSlotSize: 20 },
-  { name: "Chest (4x9)", path: "/gui/generic_4x9.png", threshold: 100, minSlotSize: 20 },
-  { name: "Chest (5x9)", path: "/gui/generic_5x9.png", threshold: 100, minSlotSize: 20 },
-  { name: "Chest (6x9)", path: "/gui/generic_6x9.png", threshold: 100, minSlotSize: 20 },
-  { name: "Chest (7x9)", path: "/gui/generic_7x9.png", threshold: 100, minSlotSize: 20 },
-  { name: "Chest (8x9)", path: "/gui/generic_8x9.png", threshold: 100, minSlotSize: 20 },
-  { name: "Chest (9x9)", path: "/gui/generic_9x9.png", threshold: 100, minSlotSize: 20 },
-  { name: "Inventory (3x3)", path: "/gui/generic_3x3.png", threshold: 100, minSlotSize: 20 },
+  { name: "Crafting Table", path: "/gui/crafting_table.png", minSlotSize: 20 },
+  { name: "Furnace", path: "/gui/furnace.png", minSlotSize: 20 },
+  { name: "Brewing Stand", path: "/gui/brewing_stand.png", minSlotSize: 20 },
+  { name: "Grindstone", path: "/gui/grindstone.png", minSlotSize: 20 },
+  { name: "Chest (1x9)", path: "/gui/generic_1x9.png", minSlotSize: 20 },
+  { name: "Chest (2x9)", path: "/gui/generic_2x9.png", minSlotSize: 20 },
+  { name: "Chest (3x9)", path: "/gui/generic_3x9.png", minSlotSize: 20 },
+  { name: "Chest (4x9)", path: "/gui/generic_4x9.png", minSlotSize: 20 },
+  { name: "Chest (5x9)", path: "/gui/generic_5x9.png", minSlotSize: 20 },
+  { name: "Chest (6x9)", path: "/gui/generic_6x9.png", minSlotSize: 20 },
+  { name: "Chest (7x9)", path: "/gui/generic_7x9.png", minSlotSize: 20 },
+  { name: "Chest (8x9)", path: "/gui/generic_8x9.png", minSlotSize: 20 },
+  { name: "Chest (9x9)", path: "/gui/generic_9x9.png", minSlotSize: 20 },
+  { name: "Inventory (3x3)", path: "/gui/generic_3x3.png", minSlotSize: 20 },
 ]
 
 export default function InventoryEditor() {
@@ -60,7 +60,6 @@ export default function InventoryEditor() {
 
   // Add state for slot detection settings
   const [showSlotDetectionSettings, setShowSlotDetectionSettings] = useState(false)
-  const [threshold, setThreshold] = useState(selectedGui.threshold)
   const [minSlotSize, setMinSlotSize] = useState(selectedGui.minSlotSize)
   const [tempGridImage, setTempGridImage] = useState<string | null>(null)
   const [previewSlots, setPreviewSlots] = useState<SlotPosition[]>([])
@@ -74,7 +73,7 @@ export default function InventoryEditor() {
   useEffect(() => {
     // Initialize slots with default GUI settings
     const initializeSlots = async () => {
-      const slots = await detectSlots(selectedGui.path, selectedGui.threshold, selectedGui.minSlotSize)
+      const slots = await detectSlots(selectedGui.path, selectedGui.minSlotSize)
       setSlotPositions(slots)
     }
     initializeSlots()
@@ -152,7 +151,7 @@ export default function InventoryEditor() {
       setTempGridImage(imageUrl)
       
       const size = await updateImageSize(imageUrl)
-      const slots = await detectSlots(imageUrl, threshold, minSlotSize)
+      const slots = await detectSlots(imageUrl, minSlotSize)
       setPreviewSlots(slots)
       setShowSlotDetectionSettings(true)
 
@@ -165,8 +164,7 @@ export default function InventoryEditor() {
   const handleApplySlotDetection = async () => {
     if (tempGridImage) {
       setGridImage(tempGridImage)
-      const size = await updateImageSize(tempGridImage)
-      const slots = await detectSlots(tempGridImage, threshold, minSlotSize)
+      const slots = await detectSlots(tempGridImage, minSlotSize)
       setSlotPositions(slots)
       setShowSlotDetectionSettings(false)
       setTempGridImage(null)
@@ -275,10 +273,9 @@ export default function InventoryEditor() {
   const handleSelectGui = async (gui: typeof DEFAULT_GUI_IMAGES[0]) => {
     setSelectedGui(gui)
     setGridImage(gui.path)
-    setThreshold(gui.threshold)
     setMinSlotSize(gui.minSlotSize)
     const size = await updateImageSize(gui.path)
-    const slots = await detectSlots(gui.path, gui.threshold, gui.minSlotSize)
+    const slots = await detectSlots(gui.path, gui.minSlotSize)
     setSlotPositions(slots)
     setShowGuiSelector(false)
   }
@@ -368,19 +365,11 @@ export default function InventoryEditor() {
             tempGridImage={tempGridImage}
             imageSize={imageSize}
             previewSlots={previewSlots}
-            threshold={threshold}
             minSlotSize={minSlotSize}
-            onThresholdChange={async (value) => {
-              setThreshold(value)
-              if (tempGridImage) {
-                const slots = await detectSlots(tempGridImage, value, minSlotSize)
-                setPreviewSlots(slots)
-              }
-            }}
             onMinSlotSizeChange={async (value) => {
               setMinSlotSize(value)
               if (tempGridImage) {
-                const slots = await detectSlots(tempGridImage, threshold, value)
+                const slots = await detectSlots(tempGridImage, value)
                 setPreviewSlots(slots)
               }
             }}

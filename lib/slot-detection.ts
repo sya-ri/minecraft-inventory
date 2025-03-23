@@ -13,7 +13,6 @@ export const createImage = (src: string): Promise<HTMLImageElement> => {
 
 export const detectSlots = async (
   imageUrl: string,
-  threshold: number,
   minSlotSize: number
 ): Promise<SlotPosition[]> => {
   const img = await createImage(imageUrl)
@@ -28,58 +27,50 @@ export const detectSlots = async (
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
   const data = imageData.data
 
-  // スロットの色の定義（RGB）
-  const targetR = 128
-  const targetG = 128
-  const targetB = 128
-  const colorThreshold = threshold // 色の許容範囲
-  const scanStep = 5 // スキャン間隔
+  // Target color definition (RGB) - Minecraft's slot color
+  const targetR = 139
+  const targetG = 139
+  const targetB = 139
+  const scanStep = 2
 
-  // 色が目的の色と一致するかチェック
+  // Check if color exactly matches target color
   const isTargetColor = (x: number, y: number): boolean => {
     if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) return false
     const i = (y * canvas.width + x) * 4
     const r = data[i]
     const g = data[i + 1]
     const b = data[i + 2]
-    const colorDiff = Math.sqrt(
-      Math.pow(r - targetR, 2) +
-      Math.pow(g - targetG, 2) +
-      Math.pow(b - targetB, 2)
-    )
-    return colorDiff <= colorThreshold
+    return r === targetR && g === targetG && b === targetB
   }
 
-  // 指定された領域が同じ色で構成されているかチェック
+  // Check if area has uniform color
   const isUniformColor = (x: number, y: number, size: number): boolean => {
-    const centerColor = {
-      r: data[(y * canvas.width + x) * 4],
-      g: data[(y * canvas.width + x) * 4 + 1],
-      b: data[(y * canvas.width + x) * 4 + 2]
+    const targetColor = {
+      r: targetR,
+      g: targetG,
+      b: targetB
     }
 
-    for (let cy = y; cy < y + size; cy++) {
-      for (let cx = x; cx < x + size; cx++) {
-        if (cx >= canvas.width || cy >= canvas.height) return false
-        
-        const i = (cy * canvas.width + cx) * 4
+    for (let dy = 0; dy < size; dy++) {
+      for (let dx = 0; dx < size; dx++) {
+        const px = x + dx
+        const py = y + dy
+        if (px >= canvas.width || py >= canvas.height) return false
+
+        const i = (py * canvas.width + px) * 4
         const r = data[i]
         const g = data[i + 1]
         const b = data[i + 2]
-        
-        const colorDiff = Math.sqrt(
-          Math.pow(r - centerColor.r, 2) +
-          Math.pow(g - centerColor.g, 2) +
-          Math.pow(b - centerColor.b, 2)
-        )
-        
-        if (colorDiff > threshold * 0.5) return false
+
+        if (r !== targetColor.r || g !== targetColor.g || b !== targetColor.b) {
+          return false
+        }
       }
     }
     return true
   }
 
-  // スロットの境界を探索（正方形のみ）
+  // Find slot boundaries (square only)
   const findSquareSlot = (startX: number, startY: number): SlotPosition | null => {
     if (!isTargetColor(startX, startY)) return null
 
@@ -87,31 +78,26 @@ export const detectSlots = async (
     let maxSize = Math.min(canvas.width - startX, canvas.height - startY)
     let validSize = null
 
-    // 正方形のサイズを徐々に大きくしていく
     while (size <= maxSize) {
-      // 内部が均一な色かチェック
       if (isUniformColor(startX, startY, size)) {
-        // ボーダーをチェック（上下左右の線）
         let hasBorder = false
         
-        // 上端
+        // Check top border
         if (startY > 0) {
-          const topBorderY = startY - 1
-          hasBorder = !isTargetColor(startX, topBorderY)
+          hasBorder = !isTargetColor(startX, startY - 1)
         }
         
-        // 下端
+        // Check bottom border
         if (startY + size < canvas.height) {
           hasBorder = hasBorder || !isTargetColor(startX, startY + size)
         }
         
-        // 左端
+        // Check left border
         if (startX > 0) {
-          const leftBorderX = startX - 1
-          hasBorder = hasBorder || !isTargetColor(leftBorderX, startY)
+          hasBorder = hasBorder || !isTargetColor(startX - 1, startY)
         }
         
-        // 右端
+        // Check right border
         if (startX + size < canvas.width) {
           hasBorder = hasBorder || !isTargetColor(startX + size, startY)
         }
@@ -141,10 +127,10 @@ export const detectSlots = async (
   const candidates: SlotPosition[] = []
   for (let y = 0; y < canvas.height - minSlotSize; y += scanStep) {
     for (let x = 0; x < canvas.width - minSlotSize; x += scanStep) {
-      // 既存のスロットと重複していないかチェック
+      // Check for overlap with existing slots
       const isOverlapping = candidates.some(slot => {
-        return x >= slot.x - 5 && x <= slot.x + slot.width + 5 &&
-               y >= slot.y - 5 && y <= slot.y + slot.height + 5
+        return x >= slot.x - 2 && x <= slot.x + slot.width + 2 &&
+               y >= slot.y - 2 && y <= slot.y + slot.height + 2
       })
 
       if (!isOverlapping) {
