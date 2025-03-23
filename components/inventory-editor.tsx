@@ -17,12 +17,32 @@ import type { SlotPosition } from "@/types/inventory"
 // Base crafting grid image
 const CRAFTING_GRID_IMAGE = "/crafting-grid.png"
 
+// Base crafting grid image
+const DEFAULT_GUI_IMAGES = [
+  { name: "Crafting Table", path: "/gui/crafting_table.png", threshold: 100, minSlotSize: 20 },
+  { name: "Furnace", path: "/gui/furnace.png", threshold: 100, minSlotSize: 22 },
+  { name: "Brewing Stand", path: "/gui/brewing_stand.png", threshold: 100, minSlotSize: 20 },
+  { name: "Grindstone", path: "/gui/grindstone.png", threshold: 100, minSlotSize: 25 },
+  { name: "Chest (1x9)", path: "/gui/generic_1x9.png", threshold: 100, minSlotSize: 20 },
+  { name: "Chest (2x9)", path: "/gui/generic_2x9.png", threshold: 100, minSlotSize: 20 },
+  { name: "Chest (3x9)", path: "/gui/generic_3x9.png", threshold: 100, minSlotSize: 20 },
+  { name: "Chest (4x9)", path: "/gui/generic_4x9.png", threshold: 100, minSlotSize: 20 },
+  { name: "Chest (5x9)", path: "/gui/generic_5x9.png", threshold: 100, minSlotSize: 20 },
+  { name: "Chest (6x9)", path: "/gui/generic_6x9.png", threshold: 100, minSlotSize: 20 },
+  { name: "Chest (7x9)", path: "/gui/generic_7x9.png", threshold: 100, minSlotSize: 20 },
+  { name: "Chest (8x9)", path: "/gui/generic_8x9.png", threshold: 100, minSlotSize: 20 },
+  { name: "Chest (9x9)", path: "/gui/generic_9x9.png", threshold: 100, minSlotSize: 20 },
+  { name: "Inventory (3x3)", path: "/gui/generic_3x3.png", threshold: 100, minSlotSize: 20 },
+]
+
 export default function InventoryEditor() {
   const [items, setItems] = useState<Array<{ id: string; image: string; position: number | null }>>([])
   const [draggedItem, setDraggedItem] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const gridFileInputRef = useRef<HTMLInputElement>(null)
-  const [gridImage, setGridImage] = useState<string>(CRAFTING_GRID_IMAGE)
+  const [selectedGui, setSelectedGui] = useState(DEFAULT_GUI_IMAGES[0])
+  const [gridImage, setGridImage] = useState<string>(selectedGui.path)
+  const [showGuiSelector, setShowGuiSelector] = useState(false)
   const [slotPositions, setSlotPositions] = useState<SlotPosition[]>([])
 
   // Add state for recent items
@@ -40,8 +60,8 @@ export default function InventoryEditor() {
 
   // Add state for slot detection settings
   const [showSlotDetectionSettings, setShowSlotDetectionSettings] = useState(false)
-  const [threshold, setThreshold] = useState(100)
-  const [minSlotSize, setMinSlotSize] = useState(20)
+  const [threshold, setThreshold] = useState(selectedGui.threshold)
+  const [minSlotSize, setMinSlotSize] = useState(selectedGui.minSlotSize)
   const [tempGridImage, setTempGridImage] = useState<string | null>(null)
   const [previewSlots, setPreviewSlots] = useState<SlotPosition[]>([])
 
@@ -50,6 +70,19 @@ export default function InventoryEditor() {
 
   // Add state for loading
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    // Initialize slots with default GUI settings
+    const initializeSlots = async () => {
+      const slots = await detectSlots(selectedGui.path, selectedGui.threshold, selectedGui.minSlotSize)
+      setSlotPositions(slots)
+    }
+    initializeSlots()
+  }, [])
+
+  useEffect(() => {
+    updateImageSize(gridImage)
+  }, [])
 
   const handleSelectMinecraftItem = (item: { name: string; path: string; url: string }) => {
     const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -239,91 +272,127 @@ export default function InventoryEditor() {
     return { width: img.width, height: img.height }
   }
 
-  useEffect(() => {
-    updateImageSize(gridImage)
-  }, [])
+  const handleSelectGui = async (gui: typeof DEFAULT_GUI_IMAGES[0]) => {
+    setSelectedGui(gui)
+    setGridImage(gui.path)
+    setThreshold(gui.threshold)
+    setMinSlotSize(gui.minSlotSize)
+    const size = await updateImageSize(gui.path)
+    const slots = await detectSlots(gui.path, gui.threshold, gui.minSlotSize)
+    setSlotPositions(slots)
+    setShowGuiSelector(false)
+  }
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6 w-full max-w-2xl">
-      <InventoryGrid
-        gridImage={gridImage}
-        imageSize={imageSize}
-        slotPositions={slotPositions}
-        items={items}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onSlotClick={handleSlotClick}
-        onDragStart={handleDragStart}
-        onClear={clearGrid}
-        onChangeGrid={() => gridFileInputRef.current?.click()}
-        onDownload={downloadImage}
-      />
+    <div className="flex gap-4">
+      {/* GUI List Sidebar */}
+      <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)] overflow-y-auto">
+        <h2 className="text-lg font-bold mb-4">Select GUI</h2>
+        <div className="space-y-2">
+          {DEFAULT_GUI_IMAGES.map((gui) => (
+            <button
+              key={gui.path}
+              className={`w-full p-2 rounded transition-colors flex flex-col items-center ${
+                gridImage === gui.path ? 'bg-gray-700' : 'hover:bg-gray-800'
+              }`}
+              onClick={() => handleSelectGui(gui)}
+            >
+              <div className="relative w-full aspect-video mb-1">
+                <Image
+                  src={gui.path}
+                  alt={gui.name}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <p className="text-sm text-center">{gui.name}</p>
+            </button>
+          ))}
+        </div>
+      </div>
 
-      {/* Hidden file inputs */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept="image/*"
-        onChange={handleItemUpload}
-      />
-      <input
-        type="file"
-        ref={gridFileInputRef}
-        className="hidden"
-        accept="image/*"
-        onChange={handleGridImageUpload}
-      />
-
-      {/* Item Selector Modal */}
-      {showItemSelector && (
-        <ItemSelectorModal
-          onSelectItem={handleSelectMinecraftItem}
-          onClose={() => {
-            setShowItemSelector(false)
-            setEditingSlot(null)
-          }}
-          onUpload={() => {
-            setShowItemSelector(false)
-            setShowUploadDialog(true)
-            setTimeout(() => {
-              fileInputRef.current?.click()
-            }, 100)
-          }}
-          recentItems={recentItems}
-        />
-      )}
-
-      {/* Slot Detection Settings Modal */}
-      {showSlotDetectionSettings && tempGridImage && (
-        <SlotDetectionSettings
-          tempGridImage={tempGridImage}
+      {/* Main Content */}
+      <div className="bg-gray-900 rounded-lg p-6 flex-1">
+        <InventoryGrid
+          gridImage={gridImage}
           imageSize={imageSize}
-          previewSlots={previewSlots}
-          threshold={threshold}
-          minSlotSize={minSlotSize}
-          onThresholdChange={async (value) => {
-            setThreshold(value)
-            if (tempGridImage) {
-              const slots = await detectSlots(tempGridImage, value, minSlotSize)
-              setPreviewSlots(slots)
-            }
-          }}
-          onMinSlotSizeChange={async (value) => {
-            setMinSlotSize(value)
-            if (tempGridImage) {
-              const slots = await detectSlots(tempGridImage, threshold, value)
-              setPreviewSlots(slots)
-            }
-          }}
-          onCancel={() => {
-            setShowSlotDetectionSettings(false)
-            setTempGridImage(null)
-            setPreviewSlots([])
-          }}
-          onApply={handleApplySlotDetection}
+          slotPositions={slotPositions}
+          items={items}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onSlotClick={handleSlotClick}
+          onDragStart={handleDragStart}
+          onClear={clearGrid}
+          onChangeGrid={() => gridFileInputRef.current?.click()}
+          onDownload={downloadImage}
         />
-      )}
+
+        {/* Hidden file inputs */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleItemUpload}
+        />
+        <input
+          type="file"
+          ref={gridFileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleGridImageUpload}
+        />
+
+        {/* Item Selector Modal */}
+        {showItemSelector && (
+          <ItemSelectorModal
+            onSelectItem={handleSelectMinecraftItem}
+            onClose={() => {
+              setShowItemSelector(false)
+              setEditingSlot(null)
+            }}
+            onUpload={() => {
+              setShowItemSelector(false)
+              setShowUploadDialog(true)
+              setTimeout(() => {
+                fileInputRef.current?.click()
+              }, 100)
+            }}
+            recentItems={recentItems}
+          />
+        )}
+
+        {/* Slot Detection Settings Modal */}
+        {showSlotDetectionSettings && tempGridImage && (
+          <SlotDetectionSettings
+            tempGridImage={tempGridImage}
+            imageSize={imageSize}
+            previewSlots={previewSlots}
+            threshold={threshold}
+            minSlotSize={minSlotSize}
+            onThresholdChange={async (value) => {
+              setThreshold(value)
+              if (tempGridImage) {
+                const slots = await detectSlots(tempGridImage, value, minSlotSize)
+                setPreviewSlots(slots)
+              }
+            }}
+            onMinSlotSizeChange={async (value) => {
+              setMinSlotSize(value)
+              if (tempGridImage) {
+                const slots = await detectSlots(tempGridImage, threshold, value)
+                setPreviewSlots(slots)
+              }
+            }}
+            onCancel={() => {
+              setShowSlotDetectionSettings(false)
+              setTempGridImage(null)
+              setPreviewSlots([])
+            }}
+            onApply={handleApplySlotDetection}
+          />
+        )}
+      </div>
     </div>
   )
 }
