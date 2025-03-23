@@ -287,8 +287,8 @@ export default function InventoryEditor() {
   return (
     <div className="flex gap-4">
       {/* GUI List Sidebar */}
-      <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)] flex flex-col">
+        <div className="flex justify-between items-center mb-4 sticky top-0 bg-gray-900 z-10">
           <h2 className="text-lg font-bold">Select GUI</h2>
           <Button
             variant="outline"
@@ -298,7 +298,7 @@ export default function InventoryEditor() {
             Upload
           </Button>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 overflow-y-auto">
           {DEFAULT_GUI_IMAGES.map((gui) => (
             <button
               key={gui.path}
