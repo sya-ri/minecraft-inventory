@@ -5,18 +5,13 @@ export interface SlotPosition {
   height: number
 }
 
-export interface Item {
-  id: string
+export interface MinecraftItem {
   name: string
-  imageUrl: string
+  url: string
+  isCustom?: boolean
 }
 
-export interface InventorySlot {
-  position: SlotPosition
-  item?: Item
+export interface PlacedMinecraftItem extends MinecraftItem {
+  id: string
+  position: number | null
 }
-
-export interface DetectionSettings {
-  threshold: number
-  minSlotSize: number
-} 

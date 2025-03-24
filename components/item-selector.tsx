@@ -7,24 +7,19 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
-
-interface MinecraftItem {
-  name: string
-  path: string
-  url: string
-  isCustom?: boolean
-}
+import {MinecraftItem} from "@/types/inventory";
 
 interface ItemSelectorProps {
   onSelectItem: (item: MinecraftItem) => void
   onClose: () => void
   recentItems: MinecraftItem[]
+  version?: string
 }
 
 // Cache for Minecraft items
-let cachedItems: MinecraftItem[] | null = null
+const cachedItems: { [version: string]: MinecraftItem[] } = {}
 
-export default function ItemSelector({ onSelectItem, onClose, recentItems }: ItemSelectorProps) {
+export default function ItemSelector({ onSelectItem, onClose, recentItems, version = "1.21.4" }: ItemSelectorProps) {
   const [items, setItems] = useState<MinecraftItem[]>([])
   const [filteredItems, setFilteredItems] = useState<MinecraftItem[]>([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -38,14 +33,14 @@ export default function ItemSelector({ onSelectItem, onClose, recentItems }: Ite
         setError(null)
 
         // Use cached items if available
-        if (cachedItems) {
-          setItems(cachedItems)
-          setFilteredItems(cachedItems)
+        if (cachedItems[version]) {
+          setItems(cachedItems[version])
+          setFilteredItems(cachedItems[version])
           setLoading(false)
           return
         }
 
-        const response = await fetch("/api/minecraft-items")
+        const response = await fetch(`/api/items/${version}`)
 
         if (!response.ok) {
           throw new Error(`Failed to fetch item list: ${response.status}`)
@@ -57,19 +52,10 @@ export default function ItemSelector({ onSelectItem, onClose, recentItems }: Ite
           throw new Error("Invalid data format received from API")
         }
 
-        const fetchedItems = data.items.map((itemPath: string) => {
-          const itemName = itemPath.replace(".png", "")
-          return {
-            name: itemName.replace(/_/g, " "),
-            path: itemPath,
-            url: `${data.baseUrl}/${itemPath}`,
-          }
-        })
-
         // Cache the fetched items
-        cachedItems = fetchedItems
-        setItems(fetchedItems)
-        setFilteredItems(fetchedItems)
+        cachedItems[version] = data.items
+        setItems(data.items)
+        setFilteredItems(data.items)
         setLoading(false)
       } catch (error) {
         console.error("Error fetching Minecraft items:", error)
@@ -79,11 +65,13 @@ export default function ItemSelector({ onSelectItem, onClose, recentItems }: Ite
     }
 
     fetchItems()
-  }, [])
+  }, [version])
 
   useEffect(() => {
     if (searchQuery) {
-      const filtered = items.filter((item) => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      const filtered = items.filter((item) => 
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
       setFilteredItems(filtered)
     } else {
       setFilteredItems(items)
@@ -113,21 +101,18 @@ export default function ItemSelector({ onSelectItem, onClose, recentItems }: Ite
               <div className="grid grid-cols-4 gap-2">
                 {recentItems.map((item) => (
                   <button
-                    key={item.url}
+                    key={item.name}
                     className="w-16 h-16 bg-gray-800 rounded border border-gray-700 hover:border-primary transition-colors p-1 flex items-center justify-center relative"
                     onClick={() => onSelectItem(item)}
                     title={item.name}
                   >
                     <div className="relative w-12 h-12">
                       <Image
-                        src={item.url || "/placeholder.svg"}
+                        src={item.url}
                         alt={item.name}
                         width={48}
                         height={48}
                         className="pixelated object-contain"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg"
-                        }}
                       />
                     </div>
                     {item.isCustom && (
@@ -157,21 +142,18 @@ export default function ItemSelector({ onSelectItem, onClose, recentItems }: Ite
                 {filteredItems.length > 0 ? (
                   filteredItems.map((item) => (
                     <button
-                      key={item.path}
+                      key={item.name}
                       className="w-16 h-16 bg-gray-800 rounded border border-gray-700 hover:border-primary transition-colors p-1 flex items-center justify-center"
                       onClick={() => onSelectItem(item)}
                       title={item.name}
                     >
                       <div className="relative w-12 h-12">
                         <Image
-                          src={item.url || "/placeholder.svg"}
+                          src={item.url}
                           alt={item.name}
                           width={48}
                           height={48}
                           className="pixelated object-contain"
-                          onError={(e) => {
-                            e.currentTarget.src = "/placeholder.svg"
-                          }}
                         />
                       </div>
                     </button>

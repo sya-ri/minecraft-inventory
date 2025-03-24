@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button"
 import ItemSelector from "@/components/item-selector"
+import {MinecraftItem} from "@/types/inventory";
 
 interface ItemSelectorModalProps {
-  onSelectItem: (item: { name: string; path: string; url: string }) => void
+  onSelectItem: (item: MinecraftItem) => void
   onClose: () => void
   onUpload: () => void
-  recentItems: Array<{ name: string; path: string; url: string; isCustom?: boolean }>
+  recentItems: MinecraftItem[]
 }
 
 export function ItemSelectorModal({

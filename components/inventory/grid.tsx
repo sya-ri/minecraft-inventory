@@ -1,14 +1,10 @@
 import { ItemSlot } from "./item-slot"
-import type { SlotPosition } from "@/types/inventory"
+import type {PlacedMinecraftItem, SlotPosition} from "@/types/inventory"
 import React, { useRef, useEffect, useState } from "react"
 
 interface InventoryGridProps {
   slotPositions: SlotPosition[]
-  items: Array<{
-    id: string
-    image: string
-    position: number | null
-  }>
+  items: PlacedMinecraftItem[]
   onDragStart: (id: string) => void
   onDrop: (position: number) => void
   onSlotClick: (position: number) => void

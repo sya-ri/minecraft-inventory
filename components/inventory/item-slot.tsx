@@ -1,9 +1,10 @@
 import Image from "next/image"
 import React from "react";
+import {PlacedMinecraftItem} from "@/types/inventory";
 
 interface ItemSlotProps {
   position: number
-  item?: { id: string; image: string } | null
+  item?: PlacedMinecraftItem | null
   onDrop: (position: number) => void
   onDragOver: (e: React.DragEvent) => void
   onClick: (position: number) => void
@@ -55,7 +56,7 @@ export function ItemSlot({
         >
           <div className="relative w-full h-full p-[20%]">
             <Image
-              src={item.image}
+              src={item.url}
               alt="Item"
               fill
               className="object-contain pixelated"

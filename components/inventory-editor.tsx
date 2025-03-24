@@ -9,7 +9,7 @@ import { InventoryGrid } from "@/components/inventory/grid"
 import { ItemSelectorModal } from "@/components/inventory/item-selector-modal"
 import { SlotDetectionSettings } from "@/components/inventory/slot-detection-settings"
 import { detectSlots, createImage } from "@/lib/slot-detection"
-import type { SlotPosition } from "@/types/inventory"
+import {MinecraftItem, PlacedMinecraftItem, SlotPosition} from "@/types/inventory"
 import { GuiSelectorModal } from "@/components/inventory/gui-selector-modal"
 import { Upload } from "lucide-react"
 
@@ -32,7 +32,7 @@ const DEFAULT_GUI_IMAGES = [
 ]
 
 export default function InventoryEditor() {
-  const [items, setItems] = useState<Array<{ id: string; image: string; position: number | null }>>([])
+  const [items, setItems] = useState<PlacedMinecraftItem[]>([])
   const [draggedItem, setDraggedItem] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const gridFileInputRef = useRef<HTMLInputElement>(null)
@@ -41,7 +41,7 @@ export default function InventoryEditor() {
   const [slotPositions, setSlotPositions] = useState<SlotPosition[]>([])
 
   // Add state for recent items
-  const [recentItems, setRecentItems] = useState<Array<{ name: string; path: string; url: string; isCustom?: boolean }>>([])
+  const [recentItems, setRecentItems] = useState<MinecraftItem[]>([])
 
   // Add state to track which slot is being edited
   const [editingSlot, setEditingSlot] = useState<number | null>(null)
@@ -74,15 +74,15 @@ export default function InventoryEditor() {
     updateImageSize(gridImage)
   }, [])
 
-  const handleSelectMinecraftItem = (item: { name: string; path: string; url: string }) => {
+  const handleSelectMinecraftItem = (item: MinecraftItem) => {
     const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
     if (editingSlot !== null) {
       setItems(prevItems => {
         const newItems = prevItems.filter(item => item.position !== editingSlot)
         return [...newItems, {
+          ...item,
           id,
-          image: item.url,
           position: editingSlot,
         }]
       })
@@ -107,31 +107,31 @@ export default function InventoryEditor() {
       const file = e.target.files[0]
       const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       const imageUrl = URL.createObjectURL(file)
+      const name = file.name.replace(/\.[^/.]+$/, "")
+      const item: MinecraftItem = {
+        name,
+        url: imageUrl,
+        isCustom: true
+      }
 
       if (editingSlot !== null) {
         setItems(prevItems => {
           const newItems = prevItems.filter(item => item.position !== editingSlot)
           return [...newItems, {
+            ...item,
             id,
-            image: imageUrl,
             position: editingSlot,
           }]
         })
 
-        const customItem = {
-          name: file.name.replace(/\.[^/.]+$/, ""),
-          path: file.name,
-          url: imageUrl,
-          isCustom: true
-        }
         setRecentItems(prevItems => {
           const existingIndex = prevItems.findIndex(i => i.url === imageUrl)
           if (existingIndex !== -1) {
             const newItems = [...prevItems]
             newItems.splice(existingIndex, 1)
-            return [customItem, ...newItems]
+            return [item, ...newItems]
           }
-          return [customItem, ...prevItems]
+          return [item, ...prevItems]
         })
 
         setEditingSlot(null)
@@ -232,7 +232,7 @@ export default function InventoryEditor() {
 
         for (const item of items) {
           if (item.position !== null && slotPositions[item.position]) {
-            const itemImage = await createImage(item.image)
+            const itemImage = await createImage(item.url)
             const slot = slotPositions[item.position]
             
             // アイテムのサイズをスロットの80%に設定
@@ -388,11 +388,11 @@ export default function InventoryEditor() {
           <div className="grid grid-cols-3 gap-2">
             {recentItems.map((item, index) => (
               <button
-                key={`${item.path}-${index}`}
+                key={`${item.url}-${index}`}
                 className="relative aspect-square bg-gray-800 rounded-lg p-0.5 sm:p-1 hover:bg-gray-700 transition-colors"
               >
                 <Image
-                  src={item.url || item.path}
+                  src={item.url}
                   alt={item.name}
                   fill
                   className="object-contain p-0.5 !duration-0"
@@ -400,8 +400,8 @@ export default function InventoryEditor() {
                   onDragStart={(e) => {
                     const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
                     setItems(prevItems => [...prevItems, {
+                      ...item,
                       id,
-                      image: item.url || item.path,
                       position: null
                     }])
                     handleDragStart(id)
