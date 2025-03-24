@@ -33,8 +33,7 @@ export function ItemSlot({
 
   return (
     <div
-      className="relative"
-      style={{ width: `${width}px`, height: `${height}px` }}
+      className="relative w-full h-full"
       onDrop={(e) => {
         e.preventDefault()
         onDrop(position)
@@ -62,6 +61,7 @@ export function ItemSlot({
               alt="Item"
               fill
               className="object-contain pixelated"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
         </div>

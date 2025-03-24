@@ -1,16 +1,9 @@
 import Image from "next/image"
 import { ItemSlot } from "./item-slot"
 import type { SlotPosition } from "@/types/inventory"
-import { Button } from "@/components/ui/button"
-import { Trash2, Download } from "lucide-react"
-import React from "react";
+import React, { useRef, useEffect, useState } from "react"
 
 interface InventoryGridProps {
-  gridImage: string
-  imageSize: {
-    width: number
-    height: number
-  }
   slotPositions: SlotPosition[]
   items: Array<{
     id: string
@@ -22,13 +15,13 @@ interface InventoryGridProps {
   onSlotClick: (position: number) => void
   onRemoveItem: (position: number) => void
   onDragOver: (e: React.DragEvent) => void
-  onClear: () => void
-  onDownload: () => void
+  imageSize: {
+    width: number
+    height: number
+  }
 }
 
 export function InventoryGrid({
-  gridImage,
-  imageSize,
   slotPositions,
   items,
   onDragStart,
@@ -36,64 +29,77 @@ export function InventoryGrid({
   onSlotClick,
   onRemoveItem,
   onDragOver,
-  onClear,
-  onDownload,
+  imageSize,
 }: InventoryGridProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [displaySize, setDisplaySize] = useState({ width: 0, height: 0, offsetX: 0, offsetY: 0 })
+
+  useEffect(() => {
+    const updateDisplaySize = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect()
+        const aspectRatio = imageSize.width / imageSize.height
+        const containerWidth = rect.width
+        const containerHeight = rect.height
+        const containerAspectRatio = containerWidth / containerHeight
+
+        let width, height
+        if (containerAspectRatio > aspectRatio) {
+          // コンテナが横長の場合
+          height = containerHeight
+          width = height * aspectRatio
+        } else {
+          // コンテナが縦長の場合
+          width = containerWidth
+          height = width / aspectRatio
+        }
+
+        // 画像のセンタリングによるオフセットを計算
+        const offsetX = (containerWidth - width) / 2
+        const offsetY = (containerHeight - height) / 2
+
+        setDisplaySize({ width, height, offsetX, offsetY })
+      }
+    }
+
+    updateDisplaySize()
+    window.addEventListener('resize', updateDisplaySize)
+    return () => window.removeEventListener('resize', updateDisplaySize)
+  }, [imageSize.width, imageSize.height])
+
   return (
-    <div className="relative">
-      <div className="relative mx-auto" style={{ width: 'fit-content' }}>
-        <Image
-          src={gridImage || "/placeholder.svg"}
-          alt="Minecraft Crafting Grid"
-          width={imageSize.width}
-          height={imageSize.height}
-          className="pixelated"
-          priority
-        />
+    <div ref={containerRef} className="absolute inset-0">
+      {slotPositions.map((slot, index) => {
+        const x = (slot.x / imageSize.width) * displaySize.width + displaySize.offsetX
+        const y = (slot.y / imageSize.height) * displaySize.height + displaySize.offsetY
+        const width = (slot.width / imageSize.width) * displaySize.width
+        const height = (slot.height / imageSize.height) * displaySize.height
 
-        <div className="absolute top-0 left-0 w-full h-full">
-          {slotPositions.map((slot, index) => (
-            <div
-              key={index}
-              style={{
-                position: 'absolute',
-                left: `${slot.x}px`,
-                top: `${slot.y}px`,
-              }}
-            >
-              <ItemSlot
-                position={index}
-                item={items.find((item) => item.position === index)}
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                onClick={onSlotClick}
-                onDragStart={onDragStart}
-                onRemoveItem={onRemoveItem}
-                width={slot.width}
-                height={slot.height}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex justify-between mt-4">
-        <Button variant="destructive" size="sm" onClick={onClear}>
-          <Trash2 className="w-4 h-4 mr-2" />
-          Clear Grid
-        </Button>
-
-        <Button variant="secondary" size="sm" onClick={onDownload}>
-          <Download className="w-4 h-4 mr-2" />
-          Save Image
-        </Button>
-      </div>
-
-      <div className="text-gray-300 text-center mt-4 text-sm space-y-1">
-        <p>Click on any slot to add or change an item</p>
-        <p>Drag items between slots to move them</p>
-        <p>Right-click to remove an item</p>
-      </div>
+        return (
+          <div
+            key={index}
+            style={{
+              position: 'absolute',
+              left: `${x}px`,
+              top: `${y}px`,
+              width: `${width}px`,
+              height: `${height}px`,
+            }}
+          >
+            <ItemSlot
+              position={index}
+              item={items.find((item) => item.position === index)}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              onClick={onSlotClick}
+              onDragStart={onDragStart}
+              onRemoveItem={onRemoveItem}
+              width={slot.width}
+              height={slot.height}
+            />
+          </div>
+        )
+      })}
     </div>
   )
 } 

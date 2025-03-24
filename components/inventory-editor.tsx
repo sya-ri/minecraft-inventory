@@ -10,6 +10,8 @@ import { ItemSelectorModal } from "@/components/inventory/item-selector-modal"
 import { SlotDetectionSettings } from "@/components/inventory/slot-detection-settings"
 import { detectSlots, createImage } from "@/lib/slot-detection"
 import type { SlotPosition } from "@/types/inventory"
+import { GuiSelectorModal } from "@/components/inventory/gui-selector-modal"
+import { Upload } from "lucide-react"
 
 // Base crafting grid image
 const DEFAULT_GUI_IMAGES = [
@@ -55,6 +57,9 @@ export default function InventoryEditor() {
 
   // Add state for image size
   const [imageSize, setImageSize] = useState({ width: 512, height: 264 })
+
+  // Add state for GUI selector
+  const [showGuiSelector, setShowGuiSelector] = useState(false)
 
   useEffect(() => {
     // Initialize slots with default GUI settings
@@ -277,68 +282,89 @@ export default function InventoryEditor() {
   }
 
   return (
-    <div className="flex gap-4">
-      {/* GUI List Sidebar */}
-      <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)] flex flex-col">
-        <div className="flex justify-between items-center mb-4 sticky top-4 bg-gray-900 z-10">
+    <div className="flex flex-col lg:flex-row gap-4">
+      {/* GUI List Sidebar - Desktop Only */}
+      <div className="hidden lg:block bg-gray-900 rounded-lg p-4 w-64 flex flex-col">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold text-gray-200">Select GUI</h2>
           <Button
             variant="outline"
             size="sm"
             onClick={() => gridFileInputRef.current?.click()}
           >
+            <Upload className="w-4 h-4 mr-2" />
             Upload
           </Button>
         </div>
-        <div className="space-y-2 overflow-y-auto">
-          {DEFAULT_GUI_IMAGES.map((gui) => (
-            <button
-              key={gui.path}
-              className={`w-full p-2 rounded transition-colors flex flex-col items-center ${
-                gridImage === gui.path ? 'bg-gray-700' : 'hover:bg-gray-800'
-              }`}
-              onClick={() => handleSelectGui(gui)}
-            >
-              <div className="relative w-full aspect-video mb-1">
-                <Image
-                  src={gui.path}
-                  alt={gui.name}
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <p className="text-sm text-center text-gray-200">{gui.name}</p>
-            </button>
-          ))}
+        <div className="overflow-y-auto h-[600px] -mx-4 px-4">
+          <div className="space-y-2">
+            {DEFAULT_GUI_IMAGES.map((gui) => (
+              <button
+                key={gui.path}
+                className={`w-full p-2 rounded transition-colors flex flex-col items-center ${
+                  gridImage === gui.path ? 'bg-gray-700' : 'hover:bg-gray-800'
+                }`}
+                onClick={() => handleSelectGui(gui)}
+              >
+                <div className="relative w-full aspect-video mb-1">
+                  <Image
+                    src={gui.path}
+                    alt={gui.name}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <p className="text-sm text-center text-gray-200">{gui.name}</p>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Main Editor Area */}
-      <div className="bg-gray-900 rounded-lg p-4 w-[600px] flex flex-col items-center">
-        <h1 className="text-2xl font-bold text-gray-200 mb-4">Minecraft Inventory Editor</h1>
-        <div className="relative w-full flex justify-center">
-          <div className="relative">
-            <InventoryGrid
-              gridImage={gridImage}
-              imageSize={imageSize}
-              slotPositions={slotPositions}
-              items={items}
-              onDragStart={handleDragStart}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onSlotClick={handleSlotClick}
-              onRemoveItem={handleRemoveItem}
-              onClear={clearGrid}
-              onDownload={downloadImage}
-            />
-          </div>
+      <div className="bg-gray-900 rounded-lg p-4 w-full lg:w-[600px] flex flex-col items-center">
+        <div className="flex flex-wrap justify-between items-center w-full mb-4 gap-2">
+          <h1 className="text-2xl font-bold text-gray-200">Minecraft Inventory Editor</h1>
+          {/* Mobile GUI Selector Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="lg:hidden ml-auto"
+            onClick={() => setShowGuiSelector(true)}
+          >
+            Select GUI
+          </Button>
+        </div>
+        <div className="text-gray-400 text-center mb-4 text-sm space-y-1">
+          <p>Click on any slot to add or change an item</p>
+          <p>Drag items between slots to move them</p>
+          <p>Right-click to remove an item</p>
+        </div>
+        <div className="relative w-full aspect-[512/264] rounded-lg overflow-hidden">
+          <Image
+            src={selectedGui.path}
+            alt="Inventory Grid"
+            fill
+            className="object-contain"
+            priority
+          />
+          <InventoryGrid
+            slotPositions={slotPositions}
+            items={items}
+            onDragStart={handleDragStart}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onSlotClick={handleSlotClick}
+            onRemoveItem={handleRemoveItem}
+            imageSize={imageSize}
+          />
         </div>
         <div className="mt-4 text-center text-gray-400 text-sm">
           <a
-              href="https://github.com/sya-ri/minecraft-inventory"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-gray-300 transition-colors"
+            href="https://github.com/sya-ri/minecraft-inventory"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-gray-300 transition-colors"
           >
             © 2025 sya-ri
           </a>
@@ -346,34 +372,36 @@ export default function InventoryEditor() {
       </div>
 
       {/* Recent Items Sidebar */}
-      <div className="bg-gray-900 rounded-lg p-4 w-64 h-[calc(100vh-2rem)]">
+      <div className="hidden lg:block bg-gray-900 rounded-lg p-4 w-64">
         <h2 className="text-lg font-bold mb-4 text-gray-200">Recent Items</h2>
-        <div className="grid grid-cols-3 gap-2">
-          {recentItems.map((item, index) => (
-            <button
-              key={`${item.path}-${index}`}
-              className="relative aspect-square bg-gray-800 rounded-lg p-2 hover:bg-gray-700 transition-colors"
-            >
-              <Image
-                src={item.url || item.path}
-                alt={item.name}
-                fill
-                className="object-contain p-1 !duration-0"
-                style={{ imageRendering: 'pixelated' }}
-                onDragStart={(e) => {
-                  const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-                  setItems(prevItems => [...prevItems, {
-                    id,
-                    image: item.url || item.path,
-                    position: null
-                  }])
-                  handleDragStart(id)
-                  e.dataTransfer.effectAllowed = 'move'
-                }}
-                sizes="64px"
-              />
-            </button>
-          ))}
+        <div className="overflow-y-auto h-[600px]">
+          <div className="grid grid-cols-3 gap-2">
+            {recentItems.map((item, index) => (
+              <button
+                key={`${item.path}-${index}`}
+                className="relative aspect-square bg-gray-800 rounded-lg p-0.5 sm:p-1 hover:bg-gray-700 transition-colors"
+              >
+                <Image
+                  src={item.url || item.path}
+                  alt={item.name}
+                  fill
+                  className="object-contain p-0.5 !duration-0"
+                  style={{ imageRendering: 'pixelated' }}
+                  onDragStart={(e) => {
+                    const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                    setItems(prevItems => [...prevItems, {
+                      id,
+                      image: item.url || item.path,
+                      position: null
+                    }])
+                    handleDragStart(id)
+                    e.dataTransfer.effectAllowed = 'move'
+                  }}
+                  sizes="(max-width: 640px) 4vw, (max-width: 768px) 12vw, 48px"
+                />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -391,6 +419,19 @@ export default function InventoryEditor() {
         className="hidden"
         accept="image/*"
         onChange={handleGridImageUpload}
+      />
+
+      {/* GUI Selector Modal - Mobile Only */}
+      <GuiSelectorModal
+        isOpen={showGuiSelector}
+        onClose={() => setShowGuiSelector(false)}
+        guis={DEFAULT_GUI_IMAGES}
+        selectedGui={selectedGui}
+        onSelectGui={handleSelectGui}
+        onUpload={() => {
+          setShowGuiSelector(false)
+          gridFileInputRef.current?.click()
+        }}
       />
 
       {/* Item Selector Modal */}
