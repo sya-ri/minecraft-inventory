@@ -57,15 +57,12 @@ export default function ItemSelector({ onSelectItem, onClose, recentItems }: Ite
           throw new Error("Invalid data format received from API")
         }
 
-        const baseUrl =
-          "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/item/"
-
         const fetchedItems = data.items.map((itemPath: string) => {
           const itemName = itemPath.replace(".png", "")
           return {
             name: itemName.replace(/_/g, " "),
             path: itemPath,
-            url: `${baseUrl}${itemPath}`,
+            url: `${data.baseUrl}/${itemPath}`,
           }
         })
 
@@ -78,27 +75,6 @@ export default function ItemSelector({ onSelectItem, onClose, recentItems }: Ite
         console.error("Error fetching Minecraft items:", error)
         setError("Failed to load items. Please try again.")
         setLoading(false)
-
-        // Fallback to a few basic items if the fetch fails
-        const baseUrl =
-          "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.4/assets/minecraft/textures/item/"
-        const fallbackItems = [
-          "diamond.png",
-          "iron_ingot.png",
-          "gold_ingot.png",
-          "emerald.png",
-          "apple.png",
-          "bread.png",
-          "diamond_sword.png",
-          "bow.png",
-        ].map((itemPath) => ({
-          name: itemPath.replace(".png", "").replace(/_/g, " "),
-          path: itemPath,
-          url: `${baseUrl}${itemPath}`,
-        }))
-
-        setItems(fallbackItems)
-        setFilteredItems(fallbackItems)
       }
     }
 
