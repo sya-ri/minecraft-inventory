@@ -325,15 +325,24 @@ export default function InventoryEditor() {
       <div className="bg-gray-900 rounded-lg p-4 w-full lg:w-[600px] flex flex-col items-center">
         <div className="flex flex-wrap justify-between items-center w-full mb-4 gap-2">
           <h1 className="text-2xl font-bold text-gray-200">Minecraft Inventory Editor</h1>
-          {/* Mobile GUI Selector Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="lg:hidden ml-auto"
-            onClick={() => setShowGuiSelector(true)}
-          >
-            Select GUI
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadImage}
+            >
+              Download
+            </Button>
+            {/* Mobile GUI Selector Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setShowGuiSelector(true)}
+            >
+              Select GUI
+            </Button>
+          </div>
         </div>
         <div className="text-gray-400 text-center mb-4 text-sm space-y-1">
           <p>Click on any slot to add or change an item</p>
