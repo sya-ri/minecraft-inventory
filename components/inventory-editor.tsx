@@ -163,6 +163,11 @@ export default function InventoryEditor() {
   const handleApplySlotDetection = async () => {
     if (tempGridImage) {
       setGridImage(tempGridImage)
+      setSelectedGui({
+        name: "Custom GUI",
+        path: tempGridImage,
+        minSlotSize: minSlotSize
+      })
       const slots = await detectSlots(tempGridImage, minSlotSize)
       setSlotPositions(slots)
       setShowSlotDetectionSettings(false)
