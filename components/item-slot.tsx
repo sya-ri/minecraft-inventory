@@ -18,8 +18,8 @@ export default function ItemSlot({ position, item, onDrop, onDragOver, onClick, 
   return (
     <div
       className={cn(
-        "w-10 h-10 bg-gray-500 bg-opacity-50 border border-gray-300 flex items-center justify-center",
-        "transition-all duration-100 cursor-pointer hover:bg-gray-400 hover:bg-opacity-30",
+        "w-10 h-10 bg-gray-500/50 border border-gray-300 flex items-center justify-center",
+        "transition-all duration-100 cursor-pointer hover:bg-gray-400/30",
       )}
       onClick={() => onClick(position)}
       onDrop={() => onDrop(position)}

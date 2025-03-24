@@ -20,9 +20,7 @@ export function ItemSlot({
   onDragOver,
   onClick,
   onDragStart,
-  onRemoveItem,
-  width,
-  height,
+  onRemoveItem
 }: ItemSlotProps) {
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -66,7 +64,7 @@ export function ItemSlot({
           </div>
         </div>
       ) : (
-        <div className="w-full h-full bg-black bg-opacity-20" />
+        <div className="w-full h-full bg-black/20" />
       )}
     </div>
   )

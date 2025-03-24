@@ -214,10 +214,6 @@ export default function InventoryEditor() {
     e.preventDefault()
   }
 
-  const clearGrid = () => {
-    setItems([])
-  }
-
   const downloadImage = async () => {
     try {
       const canvas = document.createElement("canvas")

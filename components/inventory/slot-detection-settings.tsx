@@ -22,7 +22,7 @@ export function SlotDetectionSettings({
   onApply,
 }: SlotDetectionSettingsProps) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-900 rounded-lg w-full max-w-2xl flex flex-col max-h-[90vh]">
         <div className="p-4 border-b border-gray-800">
           <h2 className="text-xl font-bold text-white">Adjust Slot Detection</h2>

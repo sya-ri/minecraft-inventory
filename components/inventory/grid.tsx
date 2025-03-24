@@ -1,4 +1,3 @@
-import Image from "next/image"
 import { ItemSlot } from "./item-slot"
 import type { SlotPosition } from "@/types/inventory"
 import React, { useRef, useEffect, useState } from "react"
