@@ -18,7 +18,7 @@
     "lucide-react": "^0.483.0",
     "minecraft-assets": "^1.15.0",
     "minecraft-data": "^3.84.1",
-    "next": "15.2.3",
+    "next": "15.2.4",
     "react": "^19",
     "react-dom": "^19",
     "tailwind-merge": "^3.0.2",
