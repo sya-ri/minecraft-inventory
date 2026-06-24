@@ -39,6 +39,8 @@ export function MinecraftItemIcon({
             alt={alt}
             fill
             className={cn("object-contain pixelated", imageClassName)}
+            fetchPriority="low"
+            loading="lazy"
             sizes="48px"
         />
     );
