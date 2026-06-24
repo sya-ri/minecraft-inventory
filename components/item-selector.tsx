@@ -1,8 +1,8 @@
 "use client";
 
 import { Search } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MinecraftItemIcon } from "@/components/minecraft-item-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -181,13 +181,10 @@ export default function ItemSelector({
                                         onClick={() => onSelectItem(item)}
                                         title={item.name}
                                     >
-                                        <div className="relative w-12 h-12">
-                                            <Image
-                                                src={item.url}
-                                                alt={item.name}
-                                                width={48}
-                                                height={48}
-                                                className="pixelated object-contain"
+                                        <div className="relative flex h-12 w-12 items-center justify-center">
+                                            <MinecraftItemIcon
+                                                item={item}
+                                                className="h-8 w-8"
                                             />
                                         </div>
                                         {item.isCustom && (
@@ -241,13 +238,10 @@ export default function ItemSelector({
                                                 }
                                                 title={item.name}
                                             >
-                                                <div className="relative w-12 h-12">
-                                                    <Image
-                                                        src={item.url}
-                                                        alt={item.name}
-                                                        width={48}
-                                                        height={48}
-                                                        className="pixelated object-contain"
+                                                <div className="relative flex h-12 w-12 items-center justify-center">
+                                                    <MinecraftItemIcon
+                                                        item={item}
+                                                        className="h-8 w-8"
                                                     />
                                                 </div>
                                             </button>

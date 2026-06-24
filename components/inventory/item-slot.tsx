@@ -1,5 +1,5 @@
-import Image from "next/image";
 import type React from "react";
+import { MinecraftItemIcon } from "@/components/minecraft-item-icon";
 import type { PlacedMinecraftItem } from "@/types/inventory";
 
 interface ItemSlotProps {
@@ -58,12 +58,11 @@ export function ItemSlot({
                     }}
                 >
                     <div className="relative w-full h-full p-[20%]">
-                        <Image
-                            src={item.url}
+                        <MinecraftItemIcon
+                            item={item}
                             alt="Item"
-                            fill
-                            className="object-contain pixelated"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="h-full w-full"
+                            imageClassName="object-contain pixelated"
                         />
                     </div>
                 </div>

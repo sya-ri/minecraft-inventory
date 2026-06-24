@@ -8,6 +8,7 @@ import { InventoryGrid } from "@/components/inventory/grid";
 import { GuiSelectorModal } from "@/components/inventory/gui-selector-modal";
 import { ItemSelectorModal } from "@/components/inventory/item-selector-modal";
 import { SlotDetectionSettings } from "@/components/inventory/slot-detection-settings";
+import { MinecraftItemIcon } from "@/components/minecraft-item-icon";
 import { Button } from "@/components/ui/button";
 import { createImage, detectSlots } from "@/lib/slot-detection";
 import type {
@@ -444,28 +445,26 @@ export default function InventoryEditor() {
                             <button
                                 key={`${item.url}-${index}`}
                                 type="button"
-                                className="relative aspect-square bg-gray-800 rounded-lg p-0.5 sm:p-1 hover:bg-gray-700 transition-colors"
+                                className="relative flex aspect-square items-center justify-center bg-gray-800 rounded-lg p-0.5 sm:p-1 hover:bg-gray-700 transition-colors"
+                                draggable
+                                onDragStart={(e) => {
+                                    const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                                    setItems((prevItems) => [
+                                        ...prevItems,
+                                        {
+                                            ...item,
+                                            id,
+                                            position: null,
+                                        },
+                                    ]);
+                                    handleDragStart(id);
+                                    e.dataTransfer.effectAllowed = "move";
+                                }}
                             >
-                                <Image
-                                    src={item.url}
-                                    alt={item.name}
-                                    fill
-                                    className="object-contain p-0.5 !duration-0"
-                                    style={{ imageRendering: "pixelated" }}
-                                    onDragStart={(e) => {
-                                        const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-                                        setItems((prevItems) => [
-                                            ...prevItems,
-                                            {
-                                                ...item,
-                                                id,
-                                                position: null,
-                                            },
-                                        ]);
-                                        handleDragStart(id);
-                                        e.dataTransfer.effectAllowed = "move";
-                                    }}
-                                    sizes="(max-width: 640px) 4vw, (max-width: 768px) 12vw, 48px"
+                                <MinecraftItemIcon
+                                    item={item}
+                                    className="h-8 w-8"
+                                    imageClassName="p-0.5 !duration-0"
                                 />
                             </button>
                         ))}

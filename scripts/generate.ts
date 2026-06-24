@@ -27,6 +27,13 @@ interface ItemInfo {
     name: string;
     texture: string;
     url: string;
+    sprite?: {
+        url: string;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    };
 }
 
 type ItemDefinition = {
@@ -365,6 +372,7 @@ function itemNameToDisplayName(name: string): string {
 async function writeSpriteAtlas(items: ItemInfo[]): Promise<void> {
     const sourceDir = join(process.cwd(), "public", "items");
     const atlasPath = join(process.cwd(), "public", "items-atlas.png");
+    const atlasUrl = "/items-atlas.png";
     const cellSize = 32;
     const columns = Math.ceil(Math.sqrt(items.length));
     const width = columns * cellSize;
@@ -376,6 +384,14 @@ async function writeSpriteAtlas(items: ItemInfo[]): Promise<void> {
             const sourcePath = join(sourceDir, `${item.texture}.png`);
             const left = (index % columns) * cellSize;
             const top = Math.floor(index / columns) * cellSize;
+
+            item.sprite = {
+                url: atlasUrl,
+                x: left,
+                y: top,
+                width: cellSize,
+                height: cellSize,
+            };
 
             const input = await sharp(sourcePath)
                 .resize(cellSize, cellSize, {
