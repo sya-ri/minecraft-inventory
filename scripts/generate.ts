@@ -362,6 +362,47 @@ function itemNameToDisplayName(name: string): string {
         .join(" ");
 }
 
+async function writeSpriteAtlas(items: ItemInfo[]): Promise<void> {
+    const sourceDir = join(process.cwd(), "public", "items");
+    const atlasPath = join(process.cwd(), "public", "items-atlas.png");
+    const cellSize = 32;
+    const columns = Math.ceil(Math.sqrt(items.length));
+    const width = columns * cellSize;
+    const rows = Math.ceil(items.length / columns);
+    const height = rows * cellSize;
+
+    const overlays = await Promise.all(
+        items.map(async (item, index) => {
+            const sourcePath = join(sourceDir, `${item.texture}.png`);
+            const left = (index % columns) * cellSize;
+            const top = Math.floor(index / columns) * cellSize;
+
+            const input = await sharp(sourcePath)
+                .resize(cellSize, cellSize, {
+                    fit: "contain",
+                    kernel: "nearest",
+                    background: { r: 0, g: 0, b: 0, alpha: 0 },
+                })
+                .png()
+                .toBuffer();
+
+            return { input, left, top };
+        }),
+    );
+
+    await sharp({
+        create: {
+            width,
+            height,
+            channels: 4,
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
+        },
+    })
+        .composite(overlays)
+        .png()
+        .toFile(atlasPath);
+}
+
 async function prepareLocalRepo(version: string): Promise<string> {
     const cacheRoot = join(process.cwd(), ".cache", "minecraft-assets");
     const repoRoot = join(cacheRoot, version);
@@ -491,6 +532,7 @@ async function generate(): Promise<void> {
 
         const itemsJsonPath = join(process.cwd(), "public", "items.json");
         items.sort((a, b) => a.texture.localeCompare(b.texture));
+        await writeSpriteAtlas(items);
         writeFileSync(itemsJsonPath, JSON.stringify(items, null, 2));
         console.log(`\n\nItems list saved to: ${itemsJsonPath}`);
 
