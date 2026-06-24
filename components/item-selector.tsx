@@ -39,6 +39,7 @@ export default function ItemSelector({
         width: 0,
         height: 0,
     });
+    const shouldShowAllItems = searchQuery.trim().length > 0;
 
     useEffect(() => {
         const fetchItems = async () => {
@@ -213,13 +214,8 @@ export default function ItemSelector({
                         <div className="text-center py-8 text-red-400">
                             {error}
                         </div>
-                    ) : (
+                    ) : shouldShowAllItems ? (
                         <div>
-                            {!searchQuery && recentItems.length > 0 && (
-                                <h3 className="text-sm font-medium text-gray-400 mb-2">
-                                    All Items
-                                </h3>
-                            )}
                             <div
                                 ref={virtualListRef}
                                 className="relative"
@@ -263,6 +259,10 @@ export default function ItemSelector({
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    ) : (
+                        <div className="text-center py-8 text-gray-400">
+                            Search to browse all items
                         </div>
                     )}
                 </div>
