@@ -2,10 +2,9 @@
 
 import { Search } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { MinecraftItem } from "@/types/inventory";
 
@@ -18,6 +17,11 @@ interface ItemSelectorProps {
 // Cache for Minecraft items
 let cachedItems: MinecraftItem[] | null = null;
 
+const ITEM_SIZE = 64;
+const ITEM_GAP = 8;
+const ROW_HEIGHT = ITEM_SIZE + ITEM_GAP;
+const OVERSCAN_ROWS = 3;
+
 export default function ItemSelector({
     onSelectItem,
     onClose,
@@ -28,6 +32,13 @@ export default function ItemSelector({
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const virtualListRef = useRef<HTMLDivElement>(null);
+    const [scrollTop, setScrollTop] = useState(0);
+    const [viewportSize, setViewportSize] = useState({
+        width: 0,
+        height: 0,
+    });
 
     useEffect(() => {
         const fetchItems = async () => {
@@ -83,6 +94,51 @@ export default function ItemSelector({
         }
     }, [searchQuery, items]);
 
+    useEffect(() => {
+        const element = scrollRef.current;
+        if (!element) return;
+
+        const updateViewportSize = () => {
+            setViewportSize({
+                width: element.clientWidth,
+                height: element.clientHeight,
+            });
+        };
+
+        updateViewportSize();
+
+        const resizeObserver = new ResizeObserver(updateViewportSize);
+        resizeObserver.observe(element);
+
+        return () => resizeObserver.disconnect();
+    }, []);
+
+    const gridWidth = Math.max(ITEM_SIZE, viewportSize.width - 32);
+    const columns = Math.max(
+        1,
+        Math.floor((gridWidth + ITEM_GAP) / (ITEM_SIZE + ITEM_GAP)),
+    );
+    const listScrollTop = Math.max(
+        0,
+        scrollTop - (virtualListRef.current?.offsetTop ?? 0),
+    );
+    const totalRows = Math.ceil(filteredItems.length / columns);
+    const startRow = Math.max(
+        0,
+        Math.floor(listScrollTop / ROW_HEIGHT) - OVERSCAN_ROWS,
+    );
+    const endRow = Math.min(
+        totalRows,
+        Math.ceil((listScrollTop + viewportSize.height) / ROW_HEIGHT) +
+            OVERSCAN_ROWS,
+    );
+    const visibleItems = useMemo(() => {
+        const startIndex = startRow * columns;
+        const endIndex = Math.min(filteredItems.length, endRow * columns);
+
+        return filteredItems.slice(startIndex, endIndex);
+    }, [columns, endRow, filteredItems, startRow]);
+
     return (
         <>
             <div className="p-4 border-b border-gray-800">
@@ -92,12 +148,22 @@ export default function ItemSelector({
                         placeholder="Search items..."
                         className="pl-8"
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(event) => {
+                            setSearchQuery(event.target.value);
+                            setScrollTop(0);
+                            scrollRef.current?.scrollTo({ top: 0 });
+                        }}
                     />
                 </div>
             </div>
 
-            <ScrollArea className="flex-1 h-[400px] overflow-y-auto">
+            <div
+                ref={scrollRef}
+                className="flex-1 h-[400px] overflow-y-auto"
+                onScroll={(event) => {
+                    setScrollTop(event.currentTarget.scrollTop);
+                }}
+            >
                 <div className="p-4">
                     {/* Recent Items Section */}
                     {recentItems.length > 0 && !searchQuery && (
@@ -154,27 +220,43 @@ export default function ItemSelector({
                                     All Items
                                 </h3>
                             )}
-                            <div className="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-10 gap-2">
+                            <div
+                                ref={virtualListRef}
+                                className="relative"
+                                style={{
+                                    height: `${totalRows * ROW_HEIGHT}px`,
+                                }}
+                            >
                                 {filteredItems.length > 0 ? (
-                                    filteredItems.map((item) => (
-                                        <button
-                                            key={item.name}
-                                            type="button"
-                                            className="w-16 h-16 bg-gray-800 rounded border border-gray-700 hover:border-primary transition-colors p-1 flex items-center justify-center"
-                                            onClick={() => onSelectItem(item)}
-                                            title={item.name}
-                                        >
-                                            <div className="relative w-12 h-12">
-                                                <Image
-                                                    src={item.url}
-                                                    alt={item.name}
-                                                    width={48}
-                                                    height={48}
-                                                    className="pixelated object-contain"
-                                                />
-                                            </div>
-                                        </button>
-                                    ))
+                                    <div
+                                        className="absolute left-0 grid gap-2"
+                                        style={{
+                                            top: `${startRow * ROW_HEIGHT}px`,
+                                            gridTemplateColumns: `repeat(${columns}, ${ITEM_SIZE}px)`,
+                                        }}
+                                    >
+                                        {visibleItems.map((item) => (
+                                            <button
+                                                key={item.name}
+                                                type="button"
+                                                className="w-16 h-16 bg-gray-800 rounded border border-gray-700 hover:border-primary transition-colors p-1 flex items-center justify-center"
+                                                onClick={() =>
+                                                    onSelectItem(item)
+                                                }
+                                                title={item.name}
+                                            >
+                                                <div className="relative w-12 h-12">
+                                                    <Image
+                                                        src={item.url}
+                                                        alt={item.name}
+                                                        width={48}
+                                                        height={48}
+                                                        className="pixelated object-contain"
+                                                    />
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
                                 ) : (
                                     <div className="col-span-full text-center py-8 text-gray-400">
                                         No items found matching {searchQuery}
@@ -184,7 +266,7 @@ export default function ItemSelector({
                         </div>
                     )}
                 </div>
-            </ScrollArea>
+            </div>
 
             <div className="p-4 border-t border-gray-800 flex justify-end">
                 <Button variant="outline" onClick={onClose}>
