@@ -6,7 +6,7 @@ Open an inventory slot and choose **Resource Packs**. Import a ZIP or select its
 
 Use the checkboxes, Up/Down and Delete controls to manage layers. Failed imports leave the current layers intact. Standard Java assets and legacy `models/item` overrides are supported. OptiFine and other MOD-only extensions are outside the supported format.
 
-Custom `assets/<namespace>/items/*.json` definitions and legacy override model variants appear in the item list. For a model JSON without an item definition, register its model ID with a vanilla base item ID. **Upload Custom Item** continues to accept a standalone image.
+Custom `assets/<namespace>/items/*.json` definitions and legacy override model variants appear in the item list automatically. **Upload Custom Item** accepts a standalone image.
 
 Click an item to place it immediately. Use its small appearance-settings button only when you want to customize `item_model`, CustomModelData numbers and typed arrays, potion/dye colors, trim material, banner/shield base colors and patterns, pot decorations or glint. Block state uses the default GUI context and has no input prompt. Pattern IDs are standard texture names such as `stripe_center`; colors use Java dye names. Player heads accept an explicitly selected 64×64 or 64×32 skin PNG; maps accept an explicitly selected image. No remote player-profile lookup is performed.
 
