@@ -12,7 +12,7 @@ import { useMinecraftAssets } from "@/components/minecraft-assets-provider";
 import { MinecraftItemIcon } from "@/components/minecraft-item-icon";
 import { Button } from "@/components/ui/button";
 import { itemKey } from "@/lib/minecraft/client";
-import { drawItem } from "@/lib/minecraft/draw-item";
+import { drawItem, itemBounds } from "@/lib/minecraft/draw-item";
 import { createImage, detectSlots } from "@/lib/slot-detection";
 import type {
     MinecraftItem,
@@ -301,20 +301,14 @@ export default function InventoryEditor() {
                         const resolvedItem = await renderItem(item);
                         const slot = slotPositions[item.position];
 
-                        // アイテムのサイズをスロットの80%に設定
-                        const itemSize = Math.floor(
-                            Math.min(slot.width, slot.height) * 0.8,
-                        );
-                        const padding = Math.floor(
-                            (Math.min(slot.width, slot.height) - itemSize) / 2,
-                        );
+                        const bounds = itemBounds(slot);
 
                         await drawItem(
                             ctx,
                             resolvedItem,
-                            slot.x + padding,
-                            slot.y + padding,
-                            itemSize,
+                            bounds.x,
+                            bounds.y,
+                            bounds.size,
                         );
                     }
                 }

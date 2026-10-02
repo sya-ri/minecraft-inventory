@@ -39,6 +39,17 @@ try {
     await page.getByPlaceholder("Search items...").fill("stone");
     await page.locator('button[title="Stone"]').click();
     await page.getByPlaceholder("Search items...").waitFor({ state: "hidden" });
+    const slotBox = await slots.first().boundingBox();
+    const iconBox = await slots
+        .first()
+        .getByRole("img", { name: "Item", exact: true })
+        .boundingBox();
+    assert(slotBox && iconBox);
+    for (const key of ["x", "y", "width", "height"] as const)
+        assert(
+            Math.abs(slotBox[key] - iconBox[key]) < 0.1,
+            `Preview ${key} must fill the slot interior without padding`,
+        );
     assert.equal(
         await page
             .getByRole("button", { name: "Use Item", exact: true })
@@ -212,6 +223,28 @@ try {
                 pixels[i + 2] < 10,
         ),
         "Locally rendered pack item must appear in PNG export",
+    );
+    const exported = await sharp(
+        readFileSync(".cache/pack-download.png"),
+    ).metadata();
+    const gridBox = await page
+        .getByRole("img", { name: "Inventory Grid", exact: true })
+        .boundingBox();
+    const packSlotBox = await slots.first().boundingBox();
+    assert(exported.width && exported.height && gridBox && packSlotBox);
+    const displayScale = Math.min(
+        gridBox.width / exported.width,
+        gridBox.height / exported.height,
+    );
+    const expectedSide = Math.round(packSlotBox.width / displayScale);
+    let redPixels = 0;
+    for (let i = 0; i < pixels.length; i += 4)
+        if (pixels[i] > 240 && pixels[i + 1] < 10 && pixels[i + 2] < 10)
+            redPixels++;
+    assert.equal(
+        redPixels,
+        expectedSide * expectedSide,
+        "Opaque generated pack item must fill the same full slot interior in PNG export and preview",
     );
     // A vanished custom item retains its slot and is restored when its pack returns.
     await slots.first().click();

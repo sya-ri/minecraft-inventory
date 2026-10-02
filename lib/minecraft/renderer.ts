@@ -124,11 +124,12 @@ export class ItemRenderer {
     private renderer: THREE.WebGLRenderer;
     private textures = new Map<string, Promise<THREE.CanvasTexture>>();
     private scene = new THREE.Scene();
+    // GuiItemAtlas scales one model unit to the full GUI item cell.
     private camera = new THREE.OrthographicCamera(
-        -0.85,
-        0.85,
-        0.85,
-        -0.85,
+        -0.5,
+        0.5,
+        0.5,
+        -0.5,
         0.01,
         100,
     );

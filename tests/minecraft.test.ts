@@ -5,6 +5,7 @@ import { unzipSync, zipSync } from "fflate";
 import sharp from "sharp";
 import { Assets, mergePacks } from "../lib/minecraft/assets";
 import { catalogItems, itemKey, validatePacks } from "../lib/minecraft/client";
+import { itemBounds } from "../lib/minecraft/draw-item";
 import { digest, makePack, unzipPack } from "../lib/minecraft/pack";
 import { property, tintColor } from "../lib/minecraft/renderer";
 import type { Catalog, Files } from "../lib/minecraft/types";
@@ -13,6 +14,23 @@ import registry from "../scripts/registry-26.3.json";
 const encode = (value: unknown) =>
     new TextEncoder().encode(JSON.stringify(value));
 const metadata = encode({ pack: { min_format: [97, 1], max_format: [97, 1] } });
+
+test("preview/export item bounds fill the slot interior at any GUI scale", () => {
+    for (const size of [16, 32, 48, 64])
+        assert.deepEqual(
+            itemBounds({ x: 10, y: 20, width: size, height: size }),
+            {
+                x: 10,
+                y: 20,
+                size,
+            },
+        );
+    assert.deepEqual(itemBounds({ x: 10, y: 20, width: 64, height: 32 }), {
+        x: 26,
+        y: 20,
+        size: 32,
+    });
+});
 
 test("published catalog covers the official registry with one shared atlas", async () => {
     const catalog = JSON.parse(

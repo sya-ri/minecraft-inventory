@@ -1,4 +1,14 @@
-import type { MinecraftItem } from "../../types/inventory";
+import type { MinecraftItem, SlotPosition } from "../../types/inventory";
+
+/** Detected slots are the 16×16 GUI interiors, excluding their border. */
+export function itemBounds(slot: SlotPosition) {
+    const size = Math.min(slot.width, slot.height);
+    return {
+        x: slot.x + (slot.width - size) / 2,
+        y: slot.y + (slot.height - size) / 2,
+        size,
+    };
+}
 
 const images = new Map<string, Promise<HTMLImageElement>>();
 export async function drawItem(

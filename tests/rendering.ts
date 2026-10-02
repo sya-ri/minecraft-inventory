@@ -292,6 +292,14 @@ try {
         .png()
         .toBuffer();
     const extra = {
+        "assets/demo/models/item/full_cell.json": encode({
+            parent: "minecraft:item/generated",
+            textures: { layer0: "demo:item/animated" },
+        }),
+        "assets/demo/models/item/half_cell.json": encode({
+            parent: "demo:item/full_cell",
+            display: { gui: { scale: [0.5, 0.5, 0.5] } },
+        }),
         "assets/demo/items/animated.json": encode({
             model: { type: "minecraft:model", model: "demo:item/animated" },
         }),
@@ -383,6 +391,22 @@ try {
             ).Harness.initialize(extra),
         extra,
     );
+    for (const [model, start, end] of [
+        ["demo:item/full_cell", 0, 128],
+        ["demo:item/half_cell", 32, 96],
+    ] as const) {
+        const pixels = await sharp(await render("minecraft:paper", { model }))
+            .ensureAlpha()
+            .raw()
+            .toBuffer();
+        for (let y = 0; y < 128; y++)
+            for (let x = 0; x < 128; x++)
+                assert.equal(
+                    pixels[(y * 128 + x) * 4 + 3],
+                    x >= start && x < end && y >= start && y < end ? 255 : 0,
+                    `${model}: GUI size must follow the client's unit-to-cell scale (${x}, ${y})`,
+                );
+    }
     const frame = await sharp(await render("demo:animated"))
         .ensureAlpha()
         .raw()

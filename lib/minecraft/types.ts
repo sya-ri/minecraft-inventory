@@ -111,7 +111,7 @@ export interface ResourcePack {
     warnings: string[];
 }
 export const GAME_VERSION = "26.3";
-export const RENDERER_VERSION = "1";
+export const RENDERER_VERSION = "2";
 export const RESOURCE_FORMAT = [97, 1] as const;
 export const DYE_COLORS: Record<string, number> = {
     white: 0xf9fffe,
