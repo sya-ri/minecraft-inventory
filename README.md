@@ -11,7 +11,10 @@ A web application for editing Minecraft inventories. Features GUI selection, ite
 - Item search functionality
 - Recently used items display
 - Automatic image resizing
-- Animated texture support
+- Java 26.3: all 1,658 item IDs, including blocks and special models
+- Local resource packs (ZIP or folder), ordered layers and saved settings
+- Item appearance settings: colors, patterns, trims, CustomModelData and glint
+- Shared atlas for browsing, placement and PNG export
 
 ## Development Setup
 
@@ -27,23 +30,32 @@ npm install
 npm run dev
 ```
 
-## Downloading Minecraft Assets
+## Generating Minecraft Assets
 
-To prepare item images locally, use the download script. The script automatically fetches the latest version from [InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets), clones the repository, and copies all item textures:
+Generation is pinned to the official Java **26.3** client and its 1,658-entry item registry. Install Playwright Chromium once, then generate:
 
 ```bash
+npx playwright install chromium
 npm run generate
 ```
 
-The script will:
-1. Automatically detect the latest Minecraft version from the GitHub repository
-2. Clone the repository for the latest version
-3. Read all item definitions from `_all.json` in the cloned repository
-4. Resolve textures through Minecraft's asset resolution system (same as the game)
-5. Copy all item textures to `public/items/`
-6. Create an `items.json` file at `public/items.json` with the item list
+The TypeScript / Three.js renderer runs in headless Chromium, creates 128px working images in `.cache/rendered`, then packs 32px cells into one optimized atlas. Generation checks every registry ID and fails with an ID/reason report if any item cannot render. Only a fully successful run publishes the hashed atlas, compressed asset bundle and catalog. Java is not required for generation.
 
-**Source:** Assets are cloned from [InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets) using the same asset resolution path as Minecraft.
+Normal browsing and PNG export use only `public/items.json` and its shared atlas. Vanilla source assets are downloaded as one hashed ZIP only when resource packs or appearance settings need rendering, then cached in IndexedDB. Packs and custom renders stay in the browser; there is no rendering or upload API.
+
+See [resource pack usage, rendering boundaries and asset provenance](docs/resource-packs.md).
+
+## Validation
+
+```bash
+npm run typecheck
+npm run check
+npm test
+npm run test:rendering
+npm run build
+```
+
+For browser integration checks, start `npm run dev -- --port 3100` in a separate terminal, then run `npm run test:browser`. Set `TEST_URL` to test another running instance. The test covers atlas-only requests, PNG export, local ZIP/folder imports, priority, failed-import recovery and persistence.
 
 ## Acknowledgments
 
@@ -51,8 +63,8 @@ Special thanks to:
 - [v0.dev](https://v0.dev/) - For providing the initial UI design and components
 - [Cursor](https://cursor.sh/) - For the excellent development environment and AI assistance
 - [@YOHEMAL](https://github.com/YOHEMAL) - For creating and providing the Minecraft inventory GUI images
-- [InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets) - For providing extracted Minecraft assets
+- Mojang - For the official Minecraft assets; Minecraft assets retain their original ownership and are not covered by this project's MIT license
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details. 
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.

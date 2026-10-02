@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 export default {
-    typescript: {
-        ignoreBuildErrors: true,
-    },
     async headers() {
         return [
             {
@@ -10,12 +7,12 @@ export default {
                 headers: [
                     {
                         key: "Cache-Control",
-                        value: "public, max-age=31536000, immutable",
+                        value: "public, max-age=0, must-revalidate",
                     },
                 ],
             },
             {
-                source: "/items-atlas.png",
+                source: "/items-atlas-:hash.png",
                 headers: [
                     {
                         key: "Cache-Control",
@@ -24,7 +21,7 @@ export default {
                 ],
             },
             {
-                source: "/items/:path*",
+                source: "/minecraft-assets-:hash.zip",
                 headers: [
                     {
                         key: "Cache-Control",

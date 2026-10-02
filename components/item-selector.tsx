@@ -1,37 +1,76 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useMinecraftAssets } from "@/components/minecraft-assets-provider";
 import { MinecraftItemIcon } from "@/components/minecraft-item-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { itemKey } from "@/lib/minecraft/client";
 import type { MinecraftItem } from "@/types/inventory";
 
 interface ItemSelectorProps {
     onSelectItem: (item: MinecraftItem) => void;
+    onEditItem: (item: MinecraftItem) => void;
     onClose: () => void;
     recentItems: MinecraftItem[];
 }
-
-// Cache for Minecraft items
-let cachedItems: MinecraftItem[] | null = null;
 
 const ITEM_SIZE = 64;
 const ITEM_GAP = 8;
 const ROW_HEIGHT = ITEM_SIZE + ITEM_GAP;
 const OVERSCAN_ROWS = 3;
 
+function ItemChoice({
+    item,
+    onSelect,
+    onEdit,
+}: {
+    item: MinecraftItem;
+    onSelect: (item: MinecraftItem) => void;
+    onEdit: (item: MinecraftItem) => void;
+}) {
+    return (
+        <div className="group relative w-16 h-16">
+            <button
+                type="button"
+                className="w-full h-full bg-gray-800 rounded border border-gray-700 hover:border-primary transition-colors p-1 flex items-center justify-center"
+                onClick={() => onSelect(item)}
+                title={item.name}
+            >
+                <div className="relative flex h-12 w-12 items-center justify-center">
+                    <MinecraftItemIcon item={item} className="h-8 w-8" />
+                </div>
+                {item.isCustom && (
+                    <div className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full" />
+                )}
+            </button>
+            {item.itemId && (
+                <button
+                    type="button"
+                    aria-label={`Edit appearance of ${item.name}`}
+                    title={`Edit appearance of ${item.name}`}
+                    className="absolute bottom-0 right-0 p-1 rounded bg-gray-900 text-gray-300 hover:text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                    onClick={() => onEdit(item)}
+                >
+                    <SlidersHorizontal className="h-3 w-3" />
+                </button>
+            )}
+        </div>
+    );
+}
+
 export default function ItemSelector({
     onSelectItem,
+    onEditItem,
     onClose,
     recentItems,
 }: ItemSelectorProps) {
-    const [items, setItems] = useState<MinecraftItem[]>([]);
+    const { items, error } = useMinecraftAssets();
     const [filteredItems, setFilteredItems] = useState<MinecraftItem[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const loading = items.length === 0 && !error;
     const scrollRef = useRef<HTMLDivElement>(null);
     const virtualListRef = useRef<HTMLDivElement>(null);
     const [scrollTop, setScrollTop] = useState(0);
@@ -42,52 +81,11 @@ export default function ItemSelector({
     const hasSearchQuery = searchQuery.trim().length > 0;
 
     useEffect(() => {
-        const fetchItems = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                // Use cached items if available
-                if (cachedItems) {
-                    setItems(cachedItems);
-                    setFilteredItems(cachedItems);
-                    setLoading(false);
-                    return;
-                }
-
-                const response = await fetch(`/items.json`);
-
-                if (!response.ok) {
-                    throw new Error(
-                        `Failed to fetch item list: ${response.status}`,
-                    );
-                }
-
-                const items: MinecraftItem[] = await response.json();
-
-                if (!items || !Array.isArray(items)) {
-                    throw new Error("Invalid data format received");
-                }
-
-                // Cache the fetched items
-                cachedItems = items;
-                setItems(items);
-                setFilteredItems(items);
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching Minecraft items:", error);
-                setError("Failed to load items. Please try again.");
-                setLoading(false);
-            }
-        };
-
-        fetchItems();
-    }, []);
-
-    useEffect(() => {
         if (searchQuery) {
             const filtered = items.filter((item) =>
-                item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+                `${item.name} ${item.itemId || ""}`
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()),
             );
             setFilteredItems(filtered);
         } else {
@@ -174,23 +172,12 @@ export default function ItemSelector({
                             </h3>
                             <div className="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-10 gap-2">
                                 {recentItems.map((item) => (
-                                    <button
-                                        key={item.name}
-                                        type="button"
-                                        className="w-16 h-16 bg-gray-800 rounded border border-gray-700 hover:border-primary transition-colors p-1 flex items-center justify-center relative"
-                                        onClick={() => onSelectItem(item)}
-                                        title={item.name}
-                                    >
-                                        <div className="relative flex h-12 w-12 items-center justify-center">
-                                            <MinecraftItemIcon
-                                                item={item}
-                                                className="h-8 w-8"
-                                            />
-                                        </div>
-                                        {item.isCustom && (
-                                            <div className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full" />
-                                        )}
-                                    </button>
+                                    <ItemChoice
+                                        key={itemKey(item)}
+                                        item={item}
+                                        onSelect={onSelectItem}
+                                        onEdit={onEditItem}
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -234,22 +221,12 @@ export default function ItemSelector({
                                         }}
                                     >
                                         {visibleItems.map((item) => (
-                                            <button
-                                                key={item.name}
-                                                type="button"
-                                                className="w-16 h-16 bg-gray-800 rounded border border-gray-700 hover:border-primary transition-colors p-1 flex items-center justify-center"
-                                                onClick={() =>
-                                                    onSelectItem(item)
-                                                }
-                                                title={item.name}
-                                            >
-                                                <div className="relative flex h-12 w-12 items-center justify-center">
-                                                    <MinecraftItemIcon
-                                                        item={item}
-                                                        className="h-8 w-8"
-                                                    />
-                                                </div>
-                                            </button>
+                                            <ItemChoice
+                                                key={itemKey(item)}
+                                                item={item}
+                                                onSelect={onSelectItem}
+                                                onEdit={onEditItem}
+                                            />
                                         ))}
                                     </div>
                                 ) : (
