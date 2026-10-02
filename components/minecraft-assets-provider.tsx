@@ -18,7 +18,6 @@ import {
     ownImage,
     packItems,
     retireImage,
-    uniqueItems,
     validatePacks,
 } from "@/lib/minecraft/client";
 import type { ItemRenderer } from "@/lib/minecraft/renderer";
@@ -33,7 +32,6 @@ interface State {
     error: string | null;
     applyPacks: (packs: ResourcePack[]) => Promise<void>;
     renderItem: (item: MinecraftItem) => Promise<MinecraftItem>;
-    registerModel: (model: string, itemId: string) => Promise<void>;
 }
 const Context = createContext<State | null>(null);
 export function useMinecraftAssets() {
@@ -58,7 +56,6 @@ export function MinecraftAssetsProvider({
     const cache = useRef(new Map<string, Promise<MinecraftItem>>());
     const completed = useRef(new Map<string, string>());
     const urls = useRef(new Set<string>());
-    const [registered, setRegistered] = useState<MinecraftItem[]>([]);
     const originals = useMemo(
         () =>
             new Map(
@@ -83,14 +80,12 @@ export function MinecraftAssetsProvider({
         Promise.all([
             loadCatalog(),
             storage<ResourcePack[]>("packs").catch(() => []),
-            storage<MinecraftItem[]>("models").catch(() => []),
         ])
-            .then(([loaded, saved, models]) => {
+            .then(([loaded, saved]) => {
                 if (!active) return;
                 setCatalog(loaded);
                 setItems(catalogItems(loaded));
                 setPacks(saved || []);
-                setRegistered(models || []);
             })
             .catch((e) => {
                 if (active) setError(String(e));
@@ -107,23 +102,20 @@ export function MinecraftAssetsProvider({
                 .then((files) => {
                     if (active)
                         setItems(
-                            uniqueItems([
-                                ...packItems(
-                                    catalogItems(catalog),
-                                    new Assets(mergePacks(files, packs)),
-                                ),
-                                ...registered,
-                            ]),
+                            packItems(
+                                catalogItems(catalog),
+                                new Assets(mergePacks(files, packs)),
+                            ),
                         );
                 })
                 .catch((e) => {
                     if (active) setError(String(e));
                 });
-        else setItems(uniqueItems([...catalogItems(catalog), ...registered]));
+        else setItems(catalogItems(catalog));
         return () => {
             active = false;
         };
-    }, [catalog, packs, registered]);
+    }, [catalog, packs]);
     useEffect(() => resetRenderer, [resetRenderer]);
     const applyPacks = useCallback(
         async (next: ResourcePack[]) => {
@@ -213,33 +205,6 @@ export function MinecraftAssetsProvider({
         },
         [catalog, packs, originals, resetRenderer],
     );
-    const registerModel = useCallback(
-        async (model: string, itemId: string) => {
-            if (!catalog || !originals.has(itemId))
-                throw new Error("Choose a vanilla base item ID");
-            const assets = new Assets(
-                mergePacks(await loadBase(catalog), packs),
-            );
-            assets.model(model);
-            const next = [
-                ...registered.filter(
-                    (item) =>
-                        item.itemId !== itemId ||
-                        item.appearance?.model !== model,
-                ),
-                {
-                    itemId,
-                    name: model,
-                    appearance: { model },
-                    url: "",
-                    isCustom: true,
-                },
-            ];
-            await storage("models", next);
-            setRegistered(next);
-        },
-        [registered, catalog, originals, packs],
-    );
     return (
         <Context.Provider
             value={{
@@ -249,7 +214,6 @@ export function MinecraftAssetsProvider({
                 error,
                 applyPacks,
                 renderItem,
-                registerModel,
             }}
         >
             {children}

@@ -6,11 +6,9 @@ import { importPack } from "@/lib/minecraft/client";
 import type { ResourcePack } from "@/lib/minecraft/types";
 
 export function ResourcePackManager({ onClose }: { onClose: () => void }) {
-    const { packs, applyPacks, registerModel } = useMinecraftAssets();
+    const { packs, applyPacks } = useMinecraftAssets();
     const [busy, setBusy] = useState(false),
-        [error, setError] = useState<string | null>(null),
-        [model, setModel] = useState(""),
-        [base, setBase] = useState("minecraft:paper");
+        [error, setError] = useState<string | null>(null);
     const zip = useRef<HTMLInputElement>(null),
         folder = useRef<HTMLInputElement>(null),
         cancel = useRef<AbortController | null>(null);
@@ -157,46 +155,6 @@ export function ResourcePackManager({ onClose }: { onClose: () => void }) {
                     ))}
                 </div>
             ))}
-            <form
-                className="space-y-2 border-t border-gray-700 pt-3"
-                onSubmit={async (event) => {
-                    event.preventDefault();
-                    setBusy(true);
-                    setError(null);
-                    try {
-                        await registerModel(model, base);
-                        setModel("");
-                    } catch (error) {
-                        setError(String(error));
-                    } finally {
-                        setBusy(false);
-                    }
-                }}
-            >
-                <p className="text-sm">
-                    Register a model without an item definition
-                </p>
-                <label className="block text-sm">
-                    Model ID
-                    <input
-                        className="block w-full p-2 bg-gray-800 rounded"
-                        placeholder="my_pack:item/example"
-                        value={model}
-                        onChange={(e) => setModel(e.target.value)}
-                        required
-                    />
-                </label>
-                <label className="block text-sm">
-                    Base item ID
-                    <input
-                        className="block w-full p-2 bg-gray-800 rounded"
-                        value={base}
-                        onChange={(e) => setBase(e.target.value)}
-                        required
-                    />
-                </label>
-                <Button disabled={busy || !model}>Add Model</Button>
-            </form>
             <Button variant="outline" disabled={busy} onClick={onClose}>
                 Back to Items
             </Button>

@@ -209,12 +209,18 @@ try {
     await page
         .getByText("Folder Pack", { exact: true })
         .waitFor({ state: "hidden" });
-    await page.getByLabel("Model ID", { exact: true }).fill("demo:item/gem");
-    await page.getByRole("button", { name: "Add Model", exact: true }).click();
-    await page.getByText("Processing pack…").waitFor({ state: "hidden" });
+    assert.equal(await page.getByLabel("Model ID", { exact: true }).count(), 0);
+    assert.equal(
+        await page.getByLabel("Base item ID", { exact: true }).count(),
+        0,
+    );
+    assert.equal(
+        await page
+            .getByRole("button", { name: "Add Model", exact: true })
+            .count(),
+        0,
+    );
     await page.getByRole("button", { name: "Back to Items" }).click();
-    await page.getByPlaceholder("Search items...").fill("demo:item/gem");
-    await page.locator('button[title="demo:item/gem"]').waitFor();
     await page.getByPlaceholder("Search items...").fill("demo:gem");
     await page.locator('button[title="demo:gem"]').click();
     await page.getByPlaceholder("Search items...").waitFor({ state: "hidden" });
