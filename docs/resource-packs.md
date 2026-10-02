@@ -18,7 +18,7 @@ Changing packs updates displayed inventory items and history through their item 
 
 The generated catalog has one atlas URL and per-item ID/name/cell coordinates. Both the UI and PNG export crop the same atlas; there are no individual vanilla PNGs in `public`. Atlas and asset ZIP URLs contain SHA-256-derived hashes and are cached immutably. `items.json` requires revalidation, keeping coordinates and image versions together.
 
-GUI scale follows the official client's `GuiItemAtlas`: one model unit fills the 16×16 item cell before `display.gui` transforms. Detected slot interiors exclude the border; preview and PNG export use the full interior with identical bounds and no additional padding or shrinking.
+GUI model scale follows the official client's `GuiItemAtlas`: one model unit fills the 16×16 item cell before `display.gui` transforms. Preview and PNG export then apply the same approximately 10% inset on each side of the detected slot interior, leaving room around full blocks and flat items. Insets snap to export pixels to keep image edges sharp. The atlas uses lossless full-color PNG compression, without palette reduction or dithering; delivery remains one cached image.
 
 Resource packs are extracted in a browser worker. Imports check paths, ZIP directory bounds, CRC, encryption, file counts, decompressed sizes, PNG dimensions/decoding, JSON and model inheritance. Limits: 128 MiB ZIP, 256 MiB decompressed, 16 MiB per file, 20,000 files and 16 million pixels per PNG. Extruded generated-item textures are limited to 512×512 pixels to bound mesh memory. No imported file is sent to a server. The vanilla ZIP is lazy and stored under its full content hash in IndexedDB; ordinary atlas use never needs it.
 

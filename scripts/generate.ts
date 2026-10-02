@@ -212,7 +212,7 @@ try {
         },
     })
         .composite(overlays)
-        .png({ compressionLevel: 9, palette: true })
+        .png({ compressionLevel: 9, palette: false })
         .toBuffer();
     catalog.atlas.url = `/items-atlas-${hash(atlas).slice(0, 16)}.png`;
     writeFileSync(join("public", catalog.atlas.url.slice(1)), atlas);

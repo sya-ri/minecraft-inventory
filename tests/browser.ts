@@ -45,11 +45,20 @@ try {
         .getByRole("img", { name: "Item", exact: true })
         .boundingBox();
     assert(slotBox && iconBox);
-    for (const key of ["x", "y", "width", "height"] as const)
-        assert(
-            Math.abs(slotBox[key] - iconBox[key]) < 0.1,
-            `Preview ${key} must fill the slot interior without padding`,
-        );
+    assert(
+        iconBox.width / slotBox.width >= 0.75 &&
+            iconBox.width / slotBox.width <= 0.82,
+    );
+    assert(
+        Math.abs(
+            iconBox.x + iconBox.width / 2 - slotBox.x - slotBox.width / 2,
+        ) < 0.1,
+    );
+    assert(
+        Math.abs(
+            iconBox.y + iconBox.height / 2 - slotBox.y - slotBox.height / 2,
+        ) < 0.1,
+    );
     assert.equal(
         await page
             .getByRole("button", { name: "Use Item", exact: true })
@@ -236,7 +245,8 @@ try {
         gridBox.width / exported.width,
         gridBox.height / exported.height,
     );
-    const expectedSide = Math.round(packSlotBox.width / displayScale);
+    const originalSide = Math.round(packSlotBox.width / displayScale);
+    const expectedSide = originalSide - 2 * Math.round(originalSide * 0.1);
     let redPixels = 0;
     for (let i = 0; i < pixels.length; i += 4)
         if (pixels[i] > 240 && pixels[i + 1] < 10 && pixels[i + 2] < 10)
@@ -244,7 +254,7 @@ try {
     assert.equal(
         redPixels,
         expectedSide * expectedSide,
-        "Opaque generated pack item must fill the same full slot interior in PNG export and preview",
+        "Opaque generated pack item must use the same inset bounds in PNG export and preview",
     );
     // A vanished custom item retains its slot and is restored when its pack returns.
     await slots.first().click();

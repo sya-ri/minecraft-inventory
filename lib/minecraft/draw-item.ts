@@ -1,8 +1,9 @@
 import type { MinecraftItem, SlotPosition } from "../../types/inventory";
 
-/** Detected slots are the 16×16 GUI interiors, excluding their border. */
+/** Leave about 10% on each side, snapping to export pixels to keep edges sharp. */
 export function itemBounds(slot: SlotPosition) {
-    const size = Math.min(slot.width, slot.height);
+    const side = Math.min(slot.width, slot.height);
+    const size = side - 2 * Math.round(side * 0.1);
     return {
         x: slot.x + (slot.width - size) / 2,
         y: slot.y + (slot.height - size) / 2,

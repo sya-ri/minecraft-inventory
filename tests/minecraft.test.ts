@@ -15,20 +15,22 @@ const encode = (value: unknown) =>
     new TextEncoder().encode(JSON.stringify(value));
 const metadata = encode({ pack: { min_format: [97, 1], max_format: [97, 1] } });
 
-test("preview/export item bounds fill the slot interior at any GUI scale", () => {
-    for (const size of [16, 32, 48, 64])
+test("preview/export item bounds share a 10% inset at any GUI scale", () => {
+    for (const [side, inset, size] of [
+        [16, 2, 12],
+        [32, 3, 26],
+        [48, 5, 38],
+        [64, 6, 52],
+    ]) {
         assert.deepEqual(
-            itemBounds({ x: 10, y: 20, width: size, height: size }),
-            {
-                x: 10,
-                y: 20,
-                size,
-            },
+            itemBounds({ x: 10, y: 20, width: side, height: side }),
+            { x: 10 + inset, y: 20 + inset, size },
         );
+    }
     assert.deepEqual(itemBounds({ x: 10, y: 20, width: 64, height: 32 }), {
-        x: 26,
-        y: 20,
-        size: 32,
+        x: 29,
+        y: 23,
+        size: 26,
     });
 });
 

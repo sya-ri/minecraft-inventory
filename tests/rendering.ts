@@ -110,23 +110,20 @@ try {
             .ensureAlpha()
             .raw()
             .toBuffer();
-        let error = 0,
-            samples = 0;
         for (let i = 0; i < expected.length; i += 4) {
-            assert(
-                Math.abs(expected[i + 3] - actual[i + 3]) <= 16,
+            assert.equal(
+                expected[i + 3],
+                actual[i + 3],
                 `${itemId}: atlas silhouette differs`,
             );
-            if (actual[i + 3] > 0)
-                for (let c = 0; c < 3; c++) {
-                    error += Math.abs(expected[i + c] - actual[i + c]);
-                    samples++;
-                }
+            if (actual[i + 3] === 255)
+                for (let c = 0; c < 3; c++)
+                    assert.equal(
+                        expected[i + c],
+                        actual[i + c],
+                        `${itemId}: lossless atlas must preserve opaque colors`,
+                    );
         }
-        assert(
-            error / Math.max(1, samples) < 12,
-            `${itemId}: atlas color error ${error / samples}`,
-        );
     }
     const variants: [string, Appearance][] = [
         ["potion", { potionColor: 0xff0000 }],
