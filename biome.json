@@ -7,7 +7,12 @@
     },
     "files": {
         "ignoreUnknown": false,
-        "includes": ["**", "!public/items.json"]
+        "includes": [
+            "**",
+            "!public/items.json",
+            "!scripts/registry-26.3.json",
+            "!lib/minecraft/native-geometry.json"
+        ]
     },
     "formatter": {
         "enabled": true,

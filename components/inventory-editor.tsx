@@ -8,8 +8,11 @@ import { InventoryGrid } from "@/components/inventory/grid";
 import { GuiSelectorModal } from "@/components/inventory/gui-selector-modal";
 import { ItemSelectorModal } from "@/components/inventory/item-selector-modal";
 import { SlotDetectionSettings } from "@/components/inventory/slot-detection-settings";
+import { useMinecraftAssets } from "@/components/minecraft-assets-provider";
 import { MinecraftItemIcon } from "@/components/minecraft-item-icon";
 import { Button } from "@/components/ui/button";
+import { itemKey } from "@/lib/minecraft/client";
+import { drawItem, itemBounds } from "@/lib/minecraft/draw-item";
 import { createImage, detectSlots } from "@/lib/slot-detection";
 import type {
     MinecraftItem,
@@ -40,9 +43,12 @@ const DEFAULT_GUI_IMAGES = [
 ];
 
 export default function InventoryEditor() {
+    const { renderItem } = useMinecraftAssets();
     const [items, setItems] = useState<PlacedMinecraftItem[]>([]);
     const [draggedItem, setDraggedItem] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const uploads = useRef(new Set<string>());
+    const [exportError, setExportError] = useState<string | null>(null);
     const gridFileInputRef = useRef<HTMLInputElement>(null);
     const [selectedGui, setSelectedGui] = useState(DEFAULT_GUI_IMAGES[0]);
     const [gridImage, setGridImage] = useState<string>(selectedGui.path);
@@ -50,7 +56,6 @@ export default function InventoryEditor() {
 
     // Add state for recent items
     const [recentItems, setRecentItems] = useState<MinecraftItem[]>([]);
-
     // Add state to track which slot is being edited
     const [editingSlot, setEditingSlot] = useState<number | null>(null);
 
@@ -69,6 +74,24 @@ export default function InventoryEditor() {
 
     // Add state for GUI selector
     const [showGuiSelector, setShowGuiSelector] = useState(false);
+    useEffect(
+        () => () => {
+            for (const url of uploads.current) URL.revokeObjectURL(url);
+        },
+        [],
+    );
+    useEffect(() => {
+        const used = new Set(
+            [...items, ...recentItems].map((item) => item.url),
+        );
+        used.add(gridImage);
+        if (tempGridImage) used.add(tempGridImage);
+        for (const url of uploads.current)
+            if (!used.has(url)) {
+                URL.revokeObjectURL(url);
+                uploads.current.delete(url);
+            }
+    }, [items, recentItems, gridImage, tempGridImage]);
 
     useEffect(() => {
         // Initialize slots with default GUI settings
@@ -79,12 +102,16 @@ export default function InventoryEditor() {
             );
             setSlotPositions(slots);
         };
-        initializeSlots();
+        initializeSlots().catch((error) =>
+            console.error("Failed to detect inventory slots", error),
+        );
     }, [selectedGui.minSlotSize, selectedGui.path]);
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: updateImageSize is a stable function defined in component scope and doesn't need to be in dependencies
     useEffect(() => {
-        updateImageSize(gridImage);
+        updateImageSize(gridImage).catch((error) =>
+            console.error("Failed to load inventory image", error),
+        );
     }, [gridImage]);
 
     const handleSelectMinecraftItem = (item: MinecraftItem) => {
@@ -107,7 +134,7 @@ export default function InventoryEditor() {
 
             setRecentItems((prevItems) => {
                 const existingIndex = prevItems.findIndex(
-                    (i) => i.url === item.url,
+                    (i) => itemKey(i) === itemKey(item),
                 );
                 if (existingIndex !== -1) {
                     const newItems = [...prevItems];
@@ -127,6 +154,7 @@ export default function InventoryEditor() {
             const file = e.target.files[0];
             const id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
             const imageUrl = URL.createObjectURL(file);
+            uploads.current.add(imageUrl);
             const name = file.name.replace(/\.[^/.]+$/, "");
             const item: MinecraftItem = {
                 name,
@@ -176,6 +204,7 @@ export default function InventoryEditor() {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
             const imageUrl = URL.createObjectURL(file);
+            uploads.current.add(imageUrl);
             setTempGridImage(imageUrl);
 
             await updateImageSize(imageUrl);
@@ -252,10 +281,11 @@ export default function InventoryEditor() {
     };
 
     const downloadImage = async () => {
+        setExportError(null);
         try {
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
-            if (!ctx) return;
+            if (!ctx) throw new Error("Canvas unavailable");
 
             canvas.width = imageSize.width;
             canvas.height = imageSize.height;
@@ -272,23 +302,17 @@ export default function InventoryEditor() {
                         item.position !== null &&
                         slotPositions[item.position]
                     ) {
-                        const itemImage = await createImage(item.url);
+                        const resolvedItem = await renderItem(item);
                         const slot = slotPositions[item.position];
 
-                        // アイテムのサイズをスロットの80%に設定
-                        const itemSize = Math.floor(
-                            Math.min(slot.width, slot.height) * 0.8,
-                        );
-                        const padding = Math.floor(
-                            (Math.min(slot.width, slot.height) - itemSize) / 2,
-                        );
+                        const bounds = itemBounds(slot);
 
-                        ctx.drawImage(
-                            itemImage,
-                            slot.x + padding,
-                            slot.y + padding,
-                            itemSize,
-                            itemSize,
+                        await drawItem(
+                            ctx,
+                            resolvedItem,
+                            bounds.x,
+                            bounds.y,
+                            bounds.size,
                         );
                     }
                 }
@@ -309,6 +333,9 @@ export default function InventoryEditor() {
             }, "image/png");
         } catch (error) {
             console.error("Error generating image:", error);
+            setExportError(
+                error instanceof Error ? error.message : String(error),
+            );
         }
     };
 
@@ -375,6 +402,12 @@ export default function InventoryEditor() {
 
             {/* Main Editor Area */}
             <div className="bg-gray-900 rounded-lg p-4 flex-1 flex flex-col items-center min-w-0">
+                {exportError && (
+                    <p role="alert" className="text-red-400 mb-3">
+                        PNG export failed: {exportError}. Select a replacement
+                        for any unavailable item and try again.
+                    </p>
+                )}
                 <div className="flex flex-wrap justify-between items-center w-full mb-4 gap-2">
                     <h1 className="text-2xl font-bold text-gray-200">
                         Minecraft Inventory Editor
@@ -443,7 +476,7 @@ export default function InventoryEditor() {
                     <div className="grid grid-cols-3 gap-2">
                         {recentItems.map((item, index) => (
                             <button
-                                key={`${item.url}-${index}`}
+                                key={`${itemKey(item)}-${index}`}
                                 type="button"
                                 className="relative flex aspect-square items-center justify-center bg-gray-800 rounded-lg p-0.5 sm:p-1 hover:bg-gray-700 transition-colors"
                                 draggable

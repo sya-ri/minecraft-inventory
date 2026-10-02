@@ -1,6 +1,9 @@
+import { useState } from "react";
 import ItemSelector from "@/components/item-selector";
 import { Button } from "@/components/ui/button";
 import type { MinecraftItem } from "@/types/inventory";
+import { ItemAppearanceEditor } from "./item-appearance-editor";
+import { ResourcePackManager } from "./resource-pack-manager";
 
 interface ItemSelectorModalProps {
     onSelectItem: (item: MinecraftItem) => void;
@@ -15,6 +18,8 @@ export function ItemSelectorModal({
     onUpload,
     recentItems,
 }: ItemSelectorModalProps) {
+    const [showPacks, setShowPacks] = useState(false);
+    const [selected, setSelected] = useState<MinecraftItem | null>(null);
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-gray-900 rounded-lg w-full max-w-5xl flex flex-col max-h-[90vh]">
@@ -28,6 +33,16 @@ export function ItemSelectorModal({
                         <Button
                             variant="outline"
                             className="flex-1"
+                            onClick={() => {
+                                setSelected(null);
+                                setShowPacks(true);
+                            }}
+                        >
+                            Resource Packs
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="flex-1"
                             onClick={onUpload}
                         >
                             Upload Custom Item
@@ -35,11 +50,22 @@ export function ItemSelectorModal({
                     </div>
                 </div>
 
-                <ItemSelector
-                    onSelectItem={onSelectItem}
-                    onClose={onClose}
-                    recentItems={recentItems}
-                />
+                {showPacks ? (
+                    <ResourcePackManager onClose={() => setShowPacks(false)} />
+                ) : selected ? (
+                    <ItemAppearanceEditor
+                        item={selected}
+                        onSelect={onSelectItem}
+                        onBack={() => setSelected(null)}
+                    />
+                ) : (
+                    <ItemSelector
+                        onSelectItem={onSelectItem}
+                        onEditItem={setSelected}
+                        onClose={onClose}
+                        recentItems={recentItems}
+                    />
+                )}
             </div>
         </div>
     );

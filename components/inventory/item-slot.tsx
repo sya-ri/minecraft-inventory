@@ -1,5 +1,6 @@
 import type React from "react";
 import { MinecraftItemIcon } from "@/components/minecraft-item-icon";
+import { itemBounds } from "@/lib/minecraft/draw-item";
 import type { PlacedMinecraftItem } from "@/types/inventory";
 
 interface ItemSlotProps {
@@ -22,7 +23,10 @@ export function ItemSlot({
     onClick,
     onDragStart,
     onRemoveItem,
+    width,
+    height,
 }: ItemSlotProps) {
+    const bounds = itemBounds({ x: 0, y: 0, width, height });
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();
         if (item && onRemoveItem) {
@@ -57,7 +61,15 @@ export function ItemSlot({
                         e.dataTransfer.effectAllowed = "move";
                     }}
                 >
-                    <div className="relative w-full h-full p-[20%]">
+                    <div
+                        className="absolute"
+                        style={{
+                            left: `${(bounds.x / width) * 100}%`,
+                            top: `${(bounds.y / height) * 100}%`,
+                            width: `${(bounds.size / width) * 100}%`,
+                            height: `${(bounds.size / height) * 100}%`,
+                        }}
+                    >
                         <MinecraftItemIcon
                             item={item}
                             alt="Item"
