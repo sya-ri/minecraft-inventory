@@ -176,6 +176,39 @@ test("pack ZIP roots, CRC and traversal are validated", async () => {
     damaged[30 + header.getUint16(26, true) + header.getUint16(28, true)] ^= 1;
     assert.throws(() => unzipPack(damaged), /CRC/);
 });
+
+test("pack IDs retain their existing ordinal order across import order and locale", async () => {
+    const files: Files = {
+        "pack.mcmeta": metadata,
+        "assets/demo/models/item/a_b.json": encode({}),
+        "assets/demo/models/item/ab.json": encode({}),
+        "assets/demo/models/item/a0.json": encode({}),
+    };
+    const pack = await makePack("Ordering", files);
+    assert.equal(
+        pack.id,
+        "698c5cbc7e834445662067ef121b015da1e3bfeeeddf97209084e7628469f014",
+    );
+    const reversed = await makePack(
+        "Reordered",
+        Object.fromEntries(Object.entries(files).reverse()),
+    );
+    assert.equal(reversed.id, pack.id);
+});
+
+test("invalid filter expressions are rejected during import", async () => {
+    for (const key of ["namespace", "path"])
+        await assert.rejects(
+            () =>
+                makePack("Invalid filter", {
+                    "pack.mcmeta": encode({
+                        pack: { min_format: [97, 1] },
+                        filter: { block: [{ [key]: "[" }] },
+                    }),
+                }),
+            SyntaxError,
+        );
+});
 test("priority, overlays, filters and disable restore vanilla", async () => {
     const path = "assets/minecraft/models/item/paper.json";
     const base: Files = {

@@ -24,7 +24,13 @@ export async function render(itemId: string, appearance?: Appearance) {
     return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result).split(",")[1]);
-        reader.onerror = () => reject(reader.error);
+        reader.onerror = () =>
+            reject(
+                new Error(
+                    reader.error?.message || "Rendered image could not be read",
+                    { cause: reader.error },
+                ),
+            );
         reader.readAsDataURL(blob);
     });
 }

@@ -20,8 +20,10 @@ import {
 } from "../lib/minecraft/types";
 import registry from "./registry-26.3.json";
 
-const CLIENT_SHA1 = "e877b6a07acd633fb3bb475002175cec036e7b87";
-const CLIENT_URL = `https://piston-data.mojang.com/v1/objects/${CLIENT_SHA1}/client.jar`;
+const CLIENT_URL =
+    "https://piston-data.mojang.com/v1/objects/e877b6a07acd633fb3bb475002175cec036e7b87/client.jar";
+const CLIENT_SHA256 =
+    "4508d006323f24fa02876310c192d739af56516eb259000ac50f0909a68c9a2d";
 const hash = (bytes: Uint8Array) =>
     createHash("sha256").update(bytes).digest("hex");
 const cache = join(process.cwd(), ".cache");
@@ -34,8 +36,8 @@ if (!existsSync(clientPath)) {
     writeFileSync(clientPath, new Uint8Array(await response.arrayBuffer()));
 }
 const client = readFileSync(clientPath);
-if (createHash("sha1").update(client).digest("hex") !== CLIENT_SHA1)
-    throw new Error("Official client SHA-1 mismatch");
+if (hash(client) !== CLIENT_SHA256)
+    throw new Error("Official client SHA-256 mismatch");
 const all = unzipSync(client);
 const files: Files = Object.create(null);
 for (const [path, bytes] of Object.entries(all)) {
@@ -84,7 +86,10 @@ files["pack.mcmeta"] = new TextEncoder().encode(
 const itemIds = Object.keys(files)
     .filter((path) => /\/items\/[^/]+\.json$/.test(path))
     .map((path) => `minecraft:${path.split("/").at(-1)?.slice(0, -5)}`)
-    .sort();
+    .sort((left, right) => {
+        if (left === right) return 0;
+        return left < right ? -1 : 1;
+    });
 if (JSON.stringify(itemIds) !== JSON.stringify(registry))
     throw new Error(
         "Item definitions differ from the official 26.3 item registry",

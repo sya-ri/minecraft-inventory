@@ -28,7 +28,7 @@ Animations freeze at the first frame listed by `.mcmeta`, or frame 0. The GUI co
 
 ## Source and accuracy
 
-The generator verifies the pinned [official 26.3 client](https://piston-data.mojang.com/v1/objects/e877b6a07acd633fb3bb475002175cec036e7b87/client.jar) against SHA-1 `e877b6a07acd633fb3bb475002175cec036e7b87`. `scripts/registry-26.3.json` comes from the official server data generator's `minecraft:item` registry report. The seven default-glint items in `lib/minecraft/defaults.ts` come from the same version's item component report.
+The generator verifies the pinned [official 26.3 client](https://piston-data.mojang.com/v1/objects/e877b6a07acd633fb3bb475002175cec036e7b87/client.jar) against SHA-256 `4508d006323f24fa02876310c192d739af56516eb259000ac50f0909a68c9a2d`, calculated from the client previously verified against Mojang's version metadata. `scripts/registry-26.3.json` comes from the official server data generator's `minecraft:item` registry report. The seven default-glint items in `lib/minecraft/defaults.ts` come from the same version's item component report.
 
 `native-geometry.json` records cube UVs, dimensions, offsets, rotations and deformation from the client's ChestModel, SkullModel, HumanoidHeadModel, DragonHeadModel, PiglinHeadModel, ShulkerModel, ShieldModel, TridentModel, BannerModel, ConduitModel, DecoratedPotModel and CopperGolemStatueModel mesh builders. TypeScript applies their GUI model transforms and textures. Generated items use the client's ItemModelGenerator depth (7.5–8.5) and opaque-edge extrusion.
 

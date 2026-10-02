@@ -8,7 +8,14 @@ export async function storage<T>(
         request.onupgradeneeded = () =>
             request.result.createObjectStore("assets");
         request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
+        request.onerror = () =>
+            reject(
+                new Error(
+                    request.error?.message ||
+                        "Asset storage could not be opened",
+                    { cause: request.error },
+                ),
+            );
     });
     try {
         return await new Promise<T | undefined>((resolve, reject) => {
@@ -25,11 +32,21 @@ export async function storage<T>(
                         ? (request.result as T | undefined)
                         : value,
                 );
-            transaction.onerror = () => reject(transaction.error);
+            transaction.onerror = () =>
+                reject(
+                    new Error(
+                        transaction.error?.message ||
+                            "Storage transaction failed",
+                        { cause: transaction.error },
+                    ),
+                );
             transaction.onabort = () =>
                 reject(
-                    transaction.error ||
-                        new Error("Storage transaction aborted"),
+                    new Error(
+                        transaction.error?.message ||
+                            "Storage transaction aborted",
+                        { cause: transaction.error },
+                    ),
                 );
         });
     } finally {

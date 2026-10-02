@@ -218,8 +218,9 @@ export async function makePack(
     )
         throw new Error("Invalid pack.mcmeta");
     for (const block of metadata.filter?.block || []) {
-        if (block.namespace) new RegExp(block.namespace);
-        if (block.path) new RegExp(block.path);
+        // Compile and validate filters before accepting the imported pack.
+        if (block.namespace) new RegExp(block.namespace).test("");
+        if (block.path) new RegExp(block.path).test("");
     }
     const warnings: string[] = [];
     if ((metadata.pack.pack_format ?? 97) !== 97)
@@ -267,7 +268,10 @@ export async function makePack(
     }
     const identities = await Promise.all(
         Object.keys(files)
-            .sort()
+            .sort((left, right) => {
+                if (left === right) return 0;
+                return left < right ? -1 : 1;
+            })
             .map(async (p) => `${p}:${await digest(files[p])}`),
     );
     return {

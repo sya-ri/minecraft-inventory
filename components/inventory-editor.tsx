@@ -102,12 +102,16 @@ export default function InventoryEditor() {
             );
             setSlotPositions(slots);
         };
-        initializeSlots();
+        initializeSlots().catch((error) =>
+            console.error("Failed to detect inventory slots", error),
+        );
     }, [selectedGui.minSlotSize, selectedGui.path]);
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: updateImageSize is a stable function defined in component scope and doesn't need to be in dependencies
     useEffect(() => {
-        updateImageSize(gridImage);
+        updateImageSize(gridImage).catch((error) =>
+            console.error("Failed to load inventory image", error),
+        );
     }, [gridImage]);
 
     const handleSelectMinecraftItem = (item: MinecraftItem) => {
