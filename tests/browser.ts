@@ -44,6 +44,13 @@ try {
         .first()
         .getByRole("img", { name: "Item", exact: true })
         .boundingBox();
+    const viewBox = await slots.first().locator("svg").getAttribute("viewBox");
+    assert(viewBox);
+    assert.deepEqual(
+        viewBox.split(" ").slice(2).map(Number),
+        [128, 128],
+        "Preview must use the full-resolution atlas cell",
+    );
     assert(slotBox && iconBox);
     assert(
         iconBox.width / slotBox.width >= 0.75 &&

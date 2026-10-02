@@ -39,6 +39,11 @@ test("published catalog covers the official registry with one shared atlas", asy
         readFileSync("public/items.json", "utf8"),
     ) as Catalog;
     assert.equal(catalog.version, "26.3");
+    assert.equal(
+        catalog.atlas.cellSize,
+        128,
+        "Keep the renderer's full resolution for enlarged block previews",
+    );
     assert.equal(catalog.items.length, 1658);
     assert.deepEqual(catalog.items.map((i) => i.itemId).sort(), registry);
     assert.equal(new Set(catalog.items.map((i) => `${i.x}:${i.y}`)).size, 1658);
@@ -47,8 +52,8 @@ test("published catalog covers the official registry with one shared atlas", asy
             (i) =>
                 i.x >= 0 &&
                 i.y >= 0 &&
-                i.x + 32 <= catalog.atlas.width &&
-                i.y + 32 <= catalog.atlas.height,
+                i.x + catalog.atlas.cellSize <= catalog.atlas.width &&
+                i.y + catalog.atlas.cellSize <= catalog.atlas.height,
         ),
     );
     const items = catalogItems(catalog);
@@ -82,8 +87,8 @@ test("published catalog covers the official registry with one shared atlas", asy
         .toBuffer({ resolveWithObject: true });
     for (const item of catalog.items) {
         let visible = false;
-        for (let y = item.y; y < item.y + 32; y++)
-            for (let x = item.x; x < item.x + 32; x++)
+        for (let y = item.y; y < item.y + catalog.atlas.cellSize; y++)
+            for (let x = item.x; x < item.x + catalog.atlas.cellSize; x++)
                 if (data[(y * info.width + x) * 4 + 3]) visible = true;
         assert.equal(
             visible,

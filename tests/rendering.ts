@@ -101,12 +101,19 @@ try {
         const item = catalog.items.find((i) => i.itemId === itemId);
         assert(item);
         const expected = await sharp(`public${catalog.atlas.url}`)
-            .extract({ left: item.x, top: item.y, width: 32, height: 32 })
+            .extract({
+                left: item.x,
+                top: item.y,
+                width: catalog.atlas.cellSize,
+                height: catalog.atlas.cellSize,
+            })
             .ensureAlpha()
             .raw()
             .toBuffer();
         const actual = await sharp(png)
-            .resize(32, 32, { kernel: "nearest" })
+            .resize(catalog.atlas.cellSize, catalog.atlas.cellSize, {
+                kernel: "nearest",
+            })
             .ensureAlpha()
             .raw()
             .toBuffer();

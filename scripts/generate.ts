@@ -124,7 +124,7 @@ try {
     await page.goto(`http://127.0.0.1:${address.port}`);
     await page.evaluate("Harness.initialize()");
     const columns = Math.ceil(Math.sqrt(registry.length)),
-        cellSize = 32;
+        cellSize = 128;
     const width = columns * cellSize,
         height = Math.ceil(registry.length / columns) * cellSize;
     const overlays: { input: Buffer; left: number; top: number }[] = [];

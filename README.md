@@ -39,7 +39,7 @@ npx playwright install chromium
 npm run generate
 ```
 
-The TypeScript / Three.js renderer runs in headless Chromium, creates 128px working images in `.cache/rendered`, then packs 32px cells into one lossless full-color PNG atlas. Compression preserves the colors without palette reduction or dithering. Generation checks every registry ID and fails with an ID/reason report if any item cannot render. Only a fully successful run publishes the hashed atlas, compressed asset bundle and catalog. Java is not required for generation.
+The TypeScript / Three.js renderer runs in headless Chromium, creates 128px images in `.cache/rendered`, then packs them at their original resolution into one lossless full-color PNG atlas. Enlarged block previews retain their rendered edge and texture detail; compression preserves the colors without palette reduction or dithering. Generation checks every registry ID and fails with an ID/reason report if any item cannot render. Only a fully successful run publishes the hashed atlas, compressed asset bundle and catalog. Java is not required for generation.
 
 Normal browsing and PNG export use only `public/items.json` and its shared atlas. Vanilla source assets are downloaded as one hashed ZIP only when resource packs or appearance settings need rendering, then cached in IndexedDB. Packs and custom renders stay in the browser; there is no rendering or upload API.
 
