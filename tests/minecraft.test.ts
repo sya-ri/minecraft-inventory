@@ -206,7 +206,10 @@ test("invalid filter expressions are rejected during import", async () => {
                         filter: { block: [{ [key]: "[" }] },
                     }),
                 }),
-            SyntaxError,
+            (error: unknown) =>
+                error instanceof Error &&
+                error.message === "Invalid pack.mcmeta filter" &&
+                error.cause instanceof SyntaxError,
         );
 });
 test("priority, overlays, filters and disable restore vanilla", async () => {

@@ -218,9 +218,13 @@ export async function makePack(
     )
         throw new Error("Invalid pack.mcmeta");
     for (const block of metadata.filter?.block || []) {
-        // Compile and validate filters before accepting the imported pack.
-        if (block.namespace) new RegExp(block.namespace).test("");
-        if (block.path) new RegExp(block.path).test("");
+        try {
+            // Compilation validates syntax without executing the expression.
+            if (block.namespace) new RegExp(block.namespace);
+            if (block.path) new RegExp(block.path);
+        } catch (error) {
+            throw new Error("Invalid pack.mcmeta filter", { cause: error });
+        }
     }
     const warnings: string[] = [];
     if ((metadata.pack.pack_format ?? 97) !== 97)
